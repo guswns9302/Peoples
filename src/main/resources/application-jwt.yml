@@ -1,0 +1,9 @@
+jwt:
+  secret: studyaroom8eiwl4234812023235121264563
+  access:
+    expiration: 3600 #초단위
+    header: AccessToken
+
+  refresh:
+    expiration: 3600 #초단위
+    header: RefreshToken
