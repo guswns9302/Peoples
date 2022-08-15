@@ -6,9 +6,9 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/studya
-    username: root
-    password: root
+    url: jdbc:mysql://peoples.cp64x6kqbjeh.ap-northeast-2.rds.amazonaws.com:3306/peoples
+    username: peoples
+    password: peoples!
 
   jpa:
     open-in-view: true
