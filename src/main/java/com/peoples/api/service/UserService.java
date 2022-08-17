@@ -16,9 +16,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URLConnection;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -42,8 +44,8 @@ public class UserService extends ResponseMap {
                 // img 등록
                 if(!file.getOriginalFilename().equals("")){
                     UUID uuid = UUID.randomUUID();
-                    imgName = SAVE_IMG_DIRECTORY + "/" + uuid + "_" + file.getOriginalFilename();
-                    File saveFile = new File(imgName);
+                    imgName = uuid + "_" + file.getOriginalFilename();
+                    File saveFile = new File(SAVE_IMG_DIRECTORY + "/" + imgName);
                     try {
                         file.transferTo(saveFile);
                     }
@@ -91,30 +93,30 @@ public class UserService extends ResponseMap {
     public Map<String,Object> verificationEmail(Map<String, Object> param) {
         Optional<User> existUser = userRepository.findByUserId(param.get("userId").toString());
         if(existUser.isPresent()){
-            return this.responseMap("Email 중복 확인 실패",false);
+            return this.responseMap("중복된 Email 이 있습니다.",false);
         }
         else{
-            return this.responseMap("Email 중복 확인 성공", true);
+            return this.responseMap("중복된 Email 이 없습니다.", true);
         }
     }
 
     @Transactional
-    public Map<String,Object> profileChange(Map<String, Object> param, MultipartFile file) {
-        Optional<User> user = userRepository.findByUserId(param.get("userId").toString());
+    public Map<String,Object> profileChange(String userId, MultipartFile file) {
+        Optional<User> user = userRepository.findByUserId(userId);
         if(user.isPresent()){
             String oldImg = user.get().getImg();
             File deleteFile = new File(oldImg);
             deleteFile.delete();
 
             UUID uuid = UUID.randomUUID();
-            String newImg = SAVE_IMG_DIRECTORY + "/" + uuid + "_" + file.getOriginalFilename();
-            File saveFile = new File(newImg);
+            String newImg = uuid + "_" + file.getOriginalFilename();
+            File saveFile = new File(SAVE_IMG_DIRECTORY + "/" + newImg);
             try {
                 file.transferTo(saveFile);
                 user.get().updateProfileImg(newImg);
-                Map<String,Object> imgURL = new HashMap<>();
-                imgURL.put("img", newImg);
-                return this.responseMap("프로필이미지 변경 성공", imgURL);
+                String fileName = "fileName";
+
+                return this.responseMap("프로필이미지 변경 성공", ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/v1/downloadIMG").queryParam(fileName, user.get().getImg()).toUriString());
             } catch (Exception e) {
                 throw new CustomException(ErrorCode.IMG_NOT_FOUND);
             }

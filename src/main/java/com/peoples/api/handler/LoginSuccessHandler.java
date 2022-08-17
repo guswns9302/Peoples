@@ -45,7 +45,7 @@ public class LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
         responseData.put("message", "Login success. Issued AccessToken , RefreshToken");
         responseData.put("result", UserResponse.from(user.get()));
 
-        Gson gson = new GsonBuilder().registerTypeAdapter(LocalDateTime.class, new GsonConfig()).setPrettyPrinting().create();
+        Gson gson = new GsonBuilder().registerTypeAdapter(LocalDateTime.class, new GsonConfig()).disableHtmlEscaping().setPrettyPrinting().create();
         response.getWriter().write(gson.toJson(responseData));
     }
 

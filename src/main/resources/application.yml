@@ -1,14 +1,17 @@
 spring:
   servlet:
     multipart:
-      max-file-size: 50MB
-      max-request-size: 50MB
+      max-file-size: 200MB
+      max-request-size: 215MB
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://peoples.cp64x6kqbjeh.ap-northeast-2.rds.amazonaws.com:3306/peoples
     username: peoples
     password: peoples!
+    #url: jdbc:mysql://localhost:3306/studya
+    #username: root
+    #password: root
 
   jpa:
     open-in-view: true

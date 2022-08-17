@@ -5,12 +5,20 @@ import com.peoples.api.service.EmailService;
 import com.peoples.api.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 
 @RestController
@@ -45,10 +53,24 @@ public class UserController {
         return null;
     }
 
+    // 프로필 이미지 다운로드
+    @GetMapping("/downloadIMG")
+    public ResponseEntity<Resource> downloadIMG(@RequestParam String fileName) throws IOException {
+        Path path = Paths.get(System.getProperty("user.home") + "/" + fileName);
+        String contentType = Files.probeContentType(path);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_TYPE, contentType);
+
+        Resource resource = new InputStreamResource(Files.newInputStream(path));
+        return new ResponseEntity<>(resource, headers, HttpStatus.OK);
+
+    }
+
     // 프로필 이미지 변경
     @PutMapping(value = "/user/profile/img", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<Map<String,Object>> uploadImg(@RequestPart Map<String, Object> param, @RequestPart MultipartFile file){
-        return ResponseEntity.ok(userService.profileChange(param,file));
+    public ResponseEntity<Map<String,Object>> uploadImg(@RequestPart String userId, @RequestPart MultipartFile file){
+        return ResponseEntity.ok(userService.profileChange(userId,file));
     }
 
     // 회원가입 이메일 인증
