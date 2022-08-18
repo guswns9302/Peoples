@@ -69,8 +69,8 @@ public class UserController {
 
     // 프로필 이미지 변경
     @PutMapping(value = "/user/profile/img", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<Map<String,Object>> uploadImg(@RequestPart String userId, @RequestPart MultipartFile file){
-        return ResponseEntity.ok(userService.profileChange(userId,file));
+    public ResponseEntity<Map<String,Object>> uploadImg(@AuthenticationPrincipal SecurityUser user, @RequestPart MultipartFile file){
+        return ResponseEntity.ok(userService.profileChange(user.getUsername(),file));
     }
 
     // 회원가입 이메일 인증
