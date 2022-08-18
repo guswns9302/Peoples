@@ -18,6 +18,7 @@ bin/
 !**/src/test/**/bin/
 
 ### IntelliJ IDEA ###
+application-jwt.yml
 .idea
 *.iws
 *.iml
@@ -35,6 +36,3 @@ out/
 
 ### VS Code ###
 .vscode/
-
-### yml ###
-application-jwt.yml
