@@ -1,7 +1,6 @@
 package com.peoples.api.controller;
 
 import com.peoples.api.domain.security.SecurityUser;
-import com.peoples.api.service.EmailService;
 import com.peoples.api.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.ModelAndView;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -28,7 +28,6 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
-    private final EmailService emailService;
 
     // 회원가입 -> email 중복 검증
     @PostMapping("/signup/verification")
@@ -42,15 +41,34 @@ public class UserController {
         return ResponseEntity.ok(userService.createUser(param, file));
     }
 
+    // 회원가입 이메일 인증
+    //public ResponseEntity<Map<String,Object>> emailAuth(@RequestParam String token){
+    @GetMapping("/email/auth")
+    public ModelAndView emailAuth(@RequestParam String token){
+        boolean result = userService.emailAuth(token);
+
+        ModelAndView mav = new ModelAndView();
+        if(result == true){
+            mav.setViewName("/emailAuthSuccess");
+        }
+        else{
+            mav.setViewName("/emailAuthFail");
+        }
+        return mav;
+    }
+    // 회원가입 이메일 인증 메일 재발송
+    @GetMapping("/user/email/auth")
+    public ResponseEntity<Map<String,Object>> reSendAuthMail(@AuthenticationPrincipal SecurityUser user){
+        return ResponseEntity.ok(userService.reSendAuthMail(user.getUser()));
+    }
     // JwtAuthenticationProcessingFilter 에서 refreshToken 으로 검증 후 재발행
     @PostMapping("/issued")
     public void reIssuedToken() {}
 
-    // 패스워드 찾기
+    // 패스워드 찾기 --> 임시 비밀번호 전송
     @GetMapping("/user/password")
-    public ResponseEntity sendUserPassword(@RequestParam String userId){
-        log.debug("userId : {}", userId);
-        return null;
+    public ResponseEntity<Map<String,Object>> sendUserPassword(@RequestParam String userId){
+        return ResponseEntity.ok(userService.tempPassword(userId));
     }
 
     // 프로필 이미지 다운로드
@@ -71,12 +89,6 @@ public class UserController {
     @PutMapping(value = "/user/profile/img", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<Map<String,Object>> uploadImg(@AuthenticationPrincipal SecurityUser user, @RequestPart MultipartFile file){
         return ResponseEntity.ok(userService.profileChange(user.getUsername(),file));
-    }
-
-    // 회원가입 이메일 인증
-    @PostMapping("/email/{userId}")
-    public ResponseEntity<Map<String,Object>> emailAuth(@PathVariable String userId){
-        return ResponseEntity.ok(emailService.sendEmail(userId));
     }
 
     // 회원 탈퇴

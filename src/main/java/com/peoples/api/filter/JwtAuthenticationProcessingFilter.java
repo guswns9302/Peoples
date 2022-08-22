@@ -50,10 +50,12 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
         String NO_CHECK_URL_SWAGGER = "/swagger-ui.html";
         String NO_CHECK_URL_SWAGGER_ANY = "/swagger-ui/";
         String GET_PROFILE_IMG = "/api/v1/downloadIMG";
+        String EMAIL_AUTH = "/api/v1/email/auth";
         if(request.getRequestURI().equals(NO_CHECK_URL_SIGNIN) || request.getRequestURI().equals(NO_CHECK_URL_SIGNUP)
             || request.getRequestURI().equals(NO_CHECK_URL_SIGNUP_VERIFICATION) || request.getRequestURI().equals(NO_CHECK_URL_PASSWORD)
             || request.getRequestURI().contains(NO_CHECK_URL_APIDOCS) || request.getRequestURI().contains(NO_CHECK_URL_SWAGGER)
-            || request.getRequestURI().contains(NO_CHECK_URL_SWAGGER_ANY) || request.getRequestURI().contains(GET_PROFILE_IMG)) {
+            || request.getRequestURI().contains(NO_CHECK_URL_SWAGGER_ANY) || request.getRequestURI().contains(GET_PROFILE_IMG)
+            || request.getRequestURI().contains(EMAIL_AUTH)) {
             filterChain.doFilter(request, response);
             return;
         }

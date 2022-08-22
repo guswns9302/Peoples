@@ -1,5 +1,6 @@
 package com.peoples.api.service;
 
+import com.peoples.api.domain.EmailAuthToken;
 import com.peoples.api.domain.StudyMember;
 import com.peoples.api.domain.User;
 import com.peoples.api.domain.enumeration.Role;
@@ -12,13 +13,11 @@ import com.peoples.api.repository.UserRepository;
 import com.peoples.api.service.responseMap.ResponseMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import org.thymeleaf.context.Context;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,6 +30,7 @@ import java.util.stream.Collectors;
 public class UserService extends ResponseMap {
 
     private final UserRepository userRepository;
+    private final EmailService emailService;
 
     private static final String SAVE_IMG_DIRECTORY = System.getProperty("user.home");
 
@@ -73,7 +73,7 @@ public class UserService extends ResponseMap {
 
                 if(save != null){
                     // 이메일 인증 메일 발송
-                    this.mailAuth(save.getUserId());
+                    emailService.createEmailAuthToken(save.getUserId(), save.getNickname());
                     // 회원정보가 저장 ok
                     return this.responseMap("회원가입 성공", true);
                 }
@@ -177,20 +177,58 @@ public class UserService extends ResponseMap {
         }
     }
 
-    // 이메일 인증 서비스
-    private void mailAuth(String userId) {
-        JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-        mailSender.setHost("smtp.gmail.com");
-        mailSender.setPort(587);
-        mailSender.setUsername("peoples.noreply@gmail.com");
-        mailSender.setPassword("room#8프로젝트");
+    @Transactional
+    public boolean emailAuth(String token){
+        Optional<EmailAuthToken> findToken = emailService.getToken(token);
+        if(findToken.isEmpty()){
+            return false;
+        }
+        else{
+            Optional<User> emailAuthUser = userRepository.findByUserId(findToken.get().getUserId());
+            emailAuthUser.get().successEmailAuth();
+            findToken.get().useToken();
+            return true;
+        }
+    }
 
-        Properties props = mailSender.getJavaMailProperties();
-        props.put("mail.transport.protocol", "smtp");
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
+    @Transactional
+    public Map<String,Object> tempPassword(String userId){
+        Optional<User> user = userRepository.findByUserId(userId);
+        if(user.isPresent()){
+            BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+            String temp_pw = this.getRandomPw();
+            user.get().updatePassword(passwordEncoder.encode(temp_pw));
+            emailService.sendTempPw(userId,temp_pw);
+            return this.responseMap("임시 비밀번호 전송 성공", true);
+        }
+        else{
+            throw new CustomException(ErrorCode.USER_NOT_FOUND);
+        }
+    }
 
-        Context context = new Context();
-        String html = "";
+    public String getRandomPw(){
+        StringBuffer key = new StringBuffer();
+        Random rnd = new Random();
+
+        for (int i = 0; i < 6; i++) {
+            int index = rnd.nextInt(3);
+            switch (index) {
+                case 0:
+                    key.append(((int) (rnd.nextInt(26)) + 97));
+                    break;
+                case 1:
+                    key.append(((int) (rnd.nextInt(26)) + 65));
+                    break;
+                case 2:
+                    key.append((rnd.nextInt(10)));
+                    break;
+            }
+        }
+        return key.toString();
+    }
+
+    public Map<String,Object> reSendAuthMail(User user) {
+        boolean result = emailService.createEmailAuthToken(user.getUserId(), user.getNickname());
+        return this.responseMap("인증 메일 재발송!", result);
     }
 }

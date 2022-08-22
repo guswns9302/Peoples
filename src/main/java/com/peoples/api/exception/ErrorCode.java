@@ -25,6 +25,9 @@ public enum ErrorCode {
     /* 404 NOT_FOUND : Resource를 찾을 수 없음 */
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자 정보를 찾을 수 없습니다."),
 
+    /* 404 NOT_FOUND : 이메일 인증 토큰을 찾을 수 없음 */
+    EMAIL_AUTH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "이메일 인증 토큰을 찾을 수 없습니다."),
+
     /* 404 NOT_FOUND : Resource를 찾을 수 없음 */
     RESULT_NOT_FOUND(HttpStatus.NOT_FOUND, "검색 결과가 존재하지 않습니다."),
 
