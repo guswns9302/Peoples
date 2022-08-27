@@ -42,7 +42,6 @@ public class UserController {
     }
 
     // 회원가입 이메일 인증
-    //public ResponseEntity<Map<String,Object>> emailAuth(@RequestParam String token){
     @GetMapping("/email/auth")
     public ModelAndView emailAuth(@RequestParam String token){
         boolean result = userService.emailAuth(token);
@@ -56,11 +55,13 @@ public class UserController {
         }
         return mav;
     }
+
     // 회원가입 이메일 인증 메일 재발송
     @GetMapping("/user/email/auth")
     public ResponseEntity<Map<String,Object>> reSendAuthMail(@AuthenticationPrincipal SecurityUser user){
         return ResponseEntity.ok(userService.reSendAuthMail(user.getUser()));
     }
+
     // JwtAuthenticationProcessingFilter 에서 refreshToken 으로 검증 후 재발행
     @PostMapping("/issued")
     public void reIssuedToken() {}

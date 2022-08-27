@@ -14,6 +14,9 @@ public enum ErrorCode {
     DUPLICATE_EMAIL(HttpStatus.BAD_REQUEST, "중복된 이메일 입니다."),
 
     /* 400 BAD_REQUEST : 잘못된 요청 */
+    ILLEGAL_LOGIN(HttpStatus.BAD_REQUEST, "허용되지 않은 로그인 방식 입니다."),
+
+    /* 400 BAD_REQUEST : 잘못된 요청 */
     PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, "패스워드가 일치하지 않습니다."),
 
     /* 401 UNAUTHORIZED : 인증되지 않은 사용자 */
@@ -34,11 +37,20 @@ public enum ErrorCode {
     /* 404 NOT_FOUND : Resource를 찾을 수 없음 */
     IMG_NOT_FOUND(HttpStatus.NOT_FOUND, "이미지파일이 존재하지 않습니다."),
 
+    /* 404 NOT_FOUND : 스터디를 찾을 수 없음 */
+    STUDY_NOT_FOUND(HttpStatus.NOT_FOUND, "스터디가 존재하지 않습니다."),
+
     /* 409 CONFLICT : Resource의 현재 상태와 충돌, 중복된 데이터 문제 */
     DUPLICATE_RESOURCE(HttpStatus.CONFLICT, "데이터가 이미 존재합니다."),
 
+    /* 409 CONFLICT : Resource의 현재 상태와 충돌, 중복된 데이터 문제 */
+    EXIST_PIN_NOTIFICATION(HttpStatus.CONFLICT, "PIN 공지가 이미 존재합니다."),
+
     /* 500 INTERNAL_SERVER_ERROR : 쿼리 오류 */
     QUERY_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "쿼리에 오류가 있습니다."),
+
+    /* 500 INTERNAL_SERVER_ERROR : 카카오 로그인 오류 */
+    KAKAO_GET_TOKEN_API_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "카카오 토큰 URL 오류가 발생했습니다."),
 
     /* 500 INTERNAL_SERVER_ERROR : 서버 오류 */
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버에 오류가 발생했습니다."),

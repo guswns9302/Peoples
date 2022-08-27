@@ -1,8 +1,11 @@
 package com.peoples.api.service.responseMap;
 
+import com.peoples.api.domain.Study;
+
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class ResponseMap {
 

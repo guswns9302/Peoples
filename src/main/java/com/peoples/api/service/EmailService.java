@@ -10,6 +10,7 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 
@@ -46,7 +47,7 @@ public class EmailService {
         Context context = new Context();
         context.setVariable("user", nickname);
         context.setVariable("auth",emailAuthToken.getId());
-        context.setVariable("authURL", "http://localhost:8082/api/v1/email/auth?token=" + emailAuthToken.getId());
+        context.setVariable("authURL", ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/v1/downloadIMG").queryParam("token", emailAuthToken.getId()).toUriString());
         String html = templateEngine.process("/emailAuthForm", context);
 
         try {

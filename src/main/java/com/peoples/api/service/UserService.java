@@ -41,7 +41,7 @@ public class UserService extends ResponseMap {
         if(Boolean.parseBoolean(this.verificationEmail(param).get("result").toString())){
             // 비밀번호 - 비밀번호 확인 체크
             if(param.get("password").toString().equals(param.get("password_check").toString())){
-                String imgName = null;
+                String imgName = "5bda7b70-4557-4fea-8f7e-5797f0042a23_peoples_logo.png";
                 // img 등록
                 if(!file.getOriginalFilename().equals("")){
                     UUID uuid = UUID.randomUUID();
@@ -54,7 +54,7 @@ public class UserService extends ResponseMap {
                         throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
                     }
                 }
-
+                log.debug("profile img : {}", imgName);
                 User newUser = User.builder()
                         .userId(param.get("userId").toString())
                         .password(passwordEncoder.encode(param.get("password").toString()))

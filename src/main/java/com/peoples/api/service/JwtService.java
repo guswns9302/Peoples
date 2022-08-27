@@ -44,6 +44,7 @@ public class JwtService {
     private final UserRepository userRepository;
 
     public String createAccessToken(String userId) {
+        log.debug("userId : {}", userId);
         return JWT.create()
                 .withSubject(ACCESS_TOKEN_SUBJECT)
                 .withExpiresAt(new Date(System.currentTimeMillis() + accessTokenValidityInSeconds * 1000))

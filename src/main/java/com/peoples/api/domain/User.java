@@ -99,4 +99,13 @@ public class User {
     public void successEmailAuth(){ this.emailAuthentication = true; }
 
     public void updatePassword(String password){this.password = password;}
+
+    public void snsCheck(String provider_name){
+        if(provider_name.equals("kakao")){
+            this.snsKakao = true;
+        }
+        else if(provider_name.equals("naver")){
+            this.snsNaver = true;
+        }
+    }
 }

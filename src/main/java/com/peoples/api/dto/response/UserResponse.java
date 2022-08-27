@@ -19,15 +19,14 @@ public class UserResponse {
     public static UserResponse from(User user){
         String fileName = "fileName";
         UserResponse userResponse = UserResponse.builder()
-                                                .userId(user.getUserId())
-                                                .nickname(user.getNickname())
-                                                .img(ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/v1/downloadIMG").queryParam(fileName,user.getImg()).toUriString())
-                                                .emailAuthentication(user.isEmailAuthentication())
-                                                .userStats(user.isUserState())
-                                                .userBlock(user.isUserBlock())
-                                                .userPause(user.isUserPause())
-                                                .build();
-
+                    .userId(user.getUserId())
+                    .nickname(user.getNickname())
+                    .img(ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/v1/downloadIMG").queryParam(fileName, user.getImg()).toUriString())
+                    .emailAuthentication(user.isEmailAuthentication())
+                    .userStats(user.isUserState())
+                    .userBlock(user.isUserBlock())
+                    .userPause(user.isUserPause())
+                    .build();
         return userResponse;
     }
 }

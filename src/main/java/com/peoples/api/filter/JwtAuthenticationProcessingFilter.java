@@ -41,6 +41,7 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        String NO_CHECK_URL_SOCIAL = "/api/v1/login/oauth/";
         String NO_CHECK_URL_SIGNIN = "/api/v1/signin";
         String NO_CHECK_URL_SIGNUP = "/api/v1/signup";
         String NO_CHECK_URL_SIGNUP_VERIFICATION = "/api/v1/signup/verification";
@@ -51,35 +52,42 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
         String NO_CHECK_URL_SWAGGER_ANY = "/swagger-ui/";
         String GET_PROFILE_IMG = "/api/v1/downloadIMG";
         String EMAIL_AUTH = "/api/v1/email/auth";
+        String ico = "/favicon.ico";
+        System.out.println(request.getRequestURI());
         if(request.getRequestURI().equals(NO_CHECK_URL_SIGNIN) || request.getRequestURI().equals(NO_CHECK_URL_SIGNUP)
             || request.getRequestURI().equals(NO_CHECK_URL_SIGNUP_VERIFICATION) || request.getRequestURI().equals(NO_CHECK_URL_PASSWORD)
             || request.getRequestURI().contains(NO_CHECK_URL_APIDOCS) || request.getRequestURI().contains(NO_CHECK_URL_SWAGGER)
             || request.getRequestURI().contains(NO_CHECK_URL_SWAGGER_ANY) || request.getRequestURI().contains(GET_PROFILE_IMG)
-            || request.getRequestURI().contains(EMAIL_AUTH)) {
+            || request.getRequestURI().contains(EMAIL_AUTH) || request.getRequestURI().contains(NO_CHECK_URL_SOCIAL) || request.getRequestURI().equals(ico)) {
+            log.debug("필터 통과 실행. request uri : {}", request.getRequestURI());
             filterChain.doFilter(request, response);
             return;
         }
         else if(request.getRequestURI().equals(NO_CHECK_URL_REISSUED)){
+            log.debug("토큰 재발행 필터 실행. request uri : {}", request.getRequestURI());
             this.tokenREISSUED(request, response);
             return;
         }
+        else{
+            // 엑세스 토큰과 리프레쉬 토큰 추출 하고 유효한 토큰인지 확인.
+            String refreshToken = jwtService.extractRefreshToken(request).filter(jwtService::isTokenValid).orElse(null);
+            String accessToken = jwtService.extractAccessToken(request).filter(jwtService::isTokenValid).orElse(null);
+            log.debug("토큰 검증 필터 실행. request uri : {}", request.getRequestURI());
 
-        // 엑세스 토큰과 리프레쉬 토큰 추출 하고 유효한 토큰인지 확인.
-        String refreshToken = jwtService.extractRefreshToken(request).filter(jwtService::isTokenValid).orElse(null);
-        String accessToken = jwtService.extractAccessToken(request).filter(jwtService::isTokenValid).orElse(null);
-        log.debug("두필터 실행");
-        if(accessToken != null && refreshToken != null){
-            log.debug("엑세스 인증");
-            checkAccessTokenAndAuthentication(request, response, filterChain, accessToken);
+            if(accessToken != null && refreshToken != null){
+                log.debug("엑세스 인증");
+                checkAccessTokenAndAuthentication(request, response, filterChain, accessToken);
+            }
+            else if((accessToken == null && refreshToken == null) || (accessToken != null && refreshToken == null)){
+                log.debug("둘다 실패");
+                this.reLogin(response);
+            }
+            else if(accessToken == null && refreshToken != null){
+                log.debug("리프레쉬 인증");
+                checkRefreshToken(response, refreshToken);
+            }
         }
-        else if((accessToken == null && refreshToken == null) || (accessToken != null && refreshToken == null)){
-            log.debug("둘다 실패");
-            this.reLogin(response);
-        }
-        else if(accessToken == null && refreshToken != null){
-            log.debug("리프레쉬 인증");
-            checkRefreshToken(response, refreshToken);
-        }
+
     }
     // 재 로그인 요청
     private void reLogin(HttpServletResponse response) throws IOException {

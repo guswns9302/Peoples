@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.security.ConditionalOnDefaultWebSecurity;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -60,7 +61,7 @@ public class SecurityConfig {
             .and()
             .authorizeRequests()
                 .antMatchers(SWAGGER_WHITE_LIST).permitAll()
-                .antMatchers("/api/v1/signin", "/api/v1/signup", "/api/v1/signup/verification", "/api/v1/user/password", "/api/v1/downloadIMG", "/api/v1/email/auth").permitAll()
+                .antMatchers("/api/v1/signin", "/api/v1/signup", "/api/v1/signup/verification", "/api/v1/user/password", "/api/v1/downloadIMG", "/api/v1/email/auth", "/api/v1/login/oauth/**").permitAll()
                 .antMatchers("/api/v1/**").hasRole("USER")
                 .anyRequest().authenticated();
 
