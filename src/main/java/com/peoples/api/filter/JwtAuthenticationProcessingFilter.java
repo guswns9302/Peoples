@@ -42,6 +42,7 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String NO_CHECK_URL_SOCIAL = "/api/v1/login/oauth/";
+        String NO_CHECK_URL_OAUTH2 = "/api/v1/login/oauth2/";
         String NO_CHECK_URL_SIGNIN = "/api/v1/signin";
         String NO_CHECK_URL_SIGNUP = "/api/v1/signup";
         String NO_CHECK_URL_SIGNUP_VERIFICATION = "/api/v1/signup/verification";
@@ -58,7 +59,8 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
             || request.getRequestURI().equals(NO_CHECK_URL_SIGNUP_VERIFICATION) || request.getRequestURI().equals(NO_CHECK_URL_PASSWORD)
             || request.getRequestURI().contains(NO_CHECK_URL_APIDOCS) || request.getRequestURI().contains(NO_CHECK_URL_SWAGGER)
             || request.getRequestURI().contains(NO_CHECK_URL_SWAGGER_ANY) || request.getRequestURI().contains(GET_PROFILE_IMG)
-            || request.getRequestURI().contains(EMAIL_AUTH) || request.getRequestURI().contains(NO_CHECK_URL_SOCIAL) || request.getRequestURI().equals(ico)) {
+            || request.getRequestURI().contains(EMAIL_AUTH) || request.getRequestURI().contains(NO_CHECK_URL_SOCIAL)
+            || request.getRequestURI().equals(ico) || request.getRequestURI().contains(NO_CHECK_URL_OAUTH2)) {
             log.debug("필터 통과 실행. request uri : {}", request.getRequestURI());
             filterChain.doFilter(request, response);
             return;

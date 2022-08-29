@@ -55,6 +55,8 @@ public enum ErrorCode {
     /* 500 INTERNAL_SERVER_ERROR : 서버 오류 */
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버에 오류가 발생했습니다."),
 
+    /* 500 INTERNAL_SERVER_ERROR : 서버 오류 */
+    FAILED_TO_SEND_VERIFICATION_MAIL(HttpStatus.INTERNAL_SERVER_ERROR, "인증 메일 발송 실패. 관리자에게 문의하세요."),
     ;
 
     private final HttpStatus httpStatus;

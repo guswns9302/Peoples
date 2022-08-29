@@ -42,6 +42,7 @@ public class UserService extends ResponseMap {
             // 비밀번호 - 비밀번호 확인 체크
             if(param.get("password").toString().equals(param.get("password_check").toString())){
                 String imgName = "5bda7b70-4557-4fea-8f7e-5797f0042a23_peoples_logo.png";
+                log.debug("file : {}", file.getOriginalFilename());
                 // img 등록
                 if(!file.getOriginalFilename().equals("")){
                     UUID uuid = UUID.randomUUID();
@@ -70,7 +71,6 @@ public class UserService extends ResponseMap {
                         .kickoutCnt(0)
                         .build();
                 User save = userRepository.save(newUser);
-
                 if(save != null){
                     // 이메일 인증 메일 발송
                     emailService.createEmailAuthToken(save.getUserId(), save.getNickname());

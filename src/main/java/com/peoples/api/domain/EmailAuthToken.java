@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class EmailAuthToken {
 
-    private static final long EMAIL_TOKEN_EXPIRATION_TIME_VALUE = 5L;	//토큰 만료 시간 5분
+    private static final long EMAIL_TOKEN_EXPIRATION_TIME_VALUE = 20L;	//토큰 만료 시간 5분
 
     @Id
     @GeneratedValue(generator = "uuid2")

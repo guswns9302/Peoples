@@ -5,6 +5,7 @@ import com.peoples.api.exception.CustomException;
 import com.peoples.api.exception.ErrorCode;
 import com.peoples.api.repository.EmailAuthTokenRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -22,6 +23,7 @@ import java.util.Properties;
 
 @RequiredArgsConstructor
 @Service
+@Slf4j
 public class EmailService {
 
     @Value("${spring.mail.host}")
@@ -62,8 +64,9 @@ public class EmailService {
             mailSender.send(message);
 
             return true;
-        } catch (MessagingException e) {
-            throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
+        } catch (Exception e) {
+            log.error("msg error : {}", e.toString());
+            throw new CustomException(ErrorCode.FAILED_TO_SEND_VERIFICATION_MAIL);
         }
     }
 

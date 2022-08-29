@@ -23,6 +23,7 @@ public class SocialLoginController {
     @GetMapping("/login/oauth/{provider}")
     public ResponseEntity<Map<String,Object>> socialLogin(@PathVariable String provider ,@RequestParam String code){
         log.debug("provider : {}", provider);
+        log.debug("code : {}", code);
         SocialLoginResponse result = socialLoginService.login(provider, code);
         HttpHeaders headers = new HttpHeaders();
         headers.add("AccessToken", result.getAccessToken());
@@ -35,4 +36,24 @@ public class SocialLoginController {
 
         return ResponseEntity.ok().headers(headers).body(responseMap);
     }
+
+    @GetMapping("/login/oauth2/{provider}")
+    public ResponseEntity<Map<String,Object>> oauth2Login(@PathVariable String provider, @RequestParam String token){
+        log.debug("provider : {}", provider);
+        log.debug("token : {}", token);
+
+        SocialLoginResponse result = socialLoginService.oauth2Login(provider, token);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("AccessToken", result.getAccessToken());
+        headers.add("RefreshToken", result.getRefreshToken());
+
+        Map<String,Object> responseMap = new HashMap<>();
+        responseMap.put("timestamp", LocalDateTime.now());
+        responseMap.put("message", "Social login success. Issued AccessToken , RefreshToken");
+        responseMap.put("result", UserResponse.from(result.getUser()));
+
+        return ResponseEntity.ok().headers(headers).body(responseMap);
+    }
+
 }

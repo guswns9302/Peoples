@@ -61,7 +61,7 @@ public class SecurityConfig {
             .and()
             .authorizeRequests()
                 .antMatchers(SWAGGER_WHITE_LIST).permitAll()
-                .antMatchers("/api/v1/signin", "/api/v1/signup", "/api/v1/signup/verification", "/api/v1/user/password", "/api/v1/downloadIMG", "/api/v1/email/auth", "/api/v1/login/oauth/**").permitAll()
+                .antMatchers("/api/v1/signin", "/api/v1/signup", "/api/v1/signup/verification", "/api/v1/user/password", "/api/v1/downloadIMG", "/api/v1/email/auth", "/api/v1/login/oauth/**", "/api/v1/login/oauth2/**").permitAll()
                 .antMatchers("/api/v1/**").hasRole("USER")
                 .anyRequest().authenticated();
 
