@@ -1,0 +1,44 @@
+jwt:
+  secret:
+  access:
+    expiration:  #초단위
+    header: AccessToken
+
+  refresh:
+    expiration:  #초단위
+    header: RefreshToken
+
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            client-id:
+            client-secret:
+            redirect-uri:
+            authorization-grant-type:
+            client-authentication-method:
+            client-name:
+            scope:
+              -
+              -
+          naver:
+            client-id:
+            client-secret:
+            redirect-uri:
+            authorization-grant-type:
+            scope:
+              -
+              -
+        provider:
+          kakao:
+            authorization-uri:
+            token-uri:
+            user-info-uri:
+            user-name-attribute:
+          naver:
+            authorization-uri:
+            token-uri:
+            user-info-uri:
+            user-name-attribute:

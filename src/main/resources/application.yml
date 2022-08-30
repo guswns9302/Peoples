@@ -1,17 +1,19 @@
 spring:
+  profiles:
+    group:
+      "dev": "dev, common, jwt, email"
+      "prod": "dev,common, jwt, email, awsMysql"
+
+---
+spring:
+  config:
+    activate:
+      on-profile: "common"
+
   servlet:
     multipart:
       max-file-size: 200MB
       max-request-size: 215MB
-
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://peoples.cp64x6kqbjeh.ap-northeast-2.rds.amazonaws.com:3306/peoples
-    username: peoples
-    password: peoples!
-    #url: jdbc:mysql://localhost:3306/studya
-    #username: root
-    #password: root
 
   jpa:
     open-in-view: true
@@ -24,15 +26,6 @@ spring:
     database: mysql
     show-sql: true
 
-  profiles:
-    include: jwt, email
-
-springdoc:
-  api-docs:
-    path: /v3/api-docs
-  swagger-ui:
-    path: /swagger-ui.html
-
 logging:
   level:
     '[com.peoples.api]': DEBUG
@@ -41,3 +34,27 @@ logging:
 
 server:
   port: 8082
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+---
+spring:
+  config:
+    activate:
+      on-profile: "dev"
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/studya
+    username: root
+    password: root
+
+---
+spring:
+  config:
+    activate:
+      on-profile: "prod"

@@ -1,0 +1,16 @@
+spring:
+  mail:
+    host: [SMTP HOST]
+    port: [PORT NUMBER]
+    username: [USERID]
+    password: [PASSWORD]
+    properties:
+      mail:
+        smtp:
+          starttls:
+            enable: [BOOLEAN]
+            required: [BOOLEAN]
+          auth: [BOOLEAN]
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
