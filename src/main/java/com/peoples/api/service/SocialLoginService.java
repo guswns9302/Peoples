@@ -38,6 +38,16 @@ public class SocialLoginService extends ResponseMap {
     private final UserRepository userRepository;
     private final JwtService jwtService;
 
+    // rest api oauth2
+    @Transactional
+    public SocialLoginResponse restApiLogin(String provider_name, String code) {
+        ClientRegistration provider = inMemoryClientRegistrationRepository.findByRegistrationId(provider_name);
+        Map<String,Object> tokenResponse = this.getToken(code, provider);
+        log.debug("oauth2 token : {}", tokenResponse);
+        Map<String, String> oauth2user = this.getUserInfo_restApi(provider_name, tokenResponse, provider);
+        return this.existUser(provider_name, oauth2user);
+    }
+
     private Map<String, Object> getToken(String code, ClientRegistration provider) {
         return WebClient.create()
                         .post()
@@ -62,113 +72,33 @@ public class SocialLoginService extends ResponseMap {
         return formData;
     }
 
-    private Map<String, String> getUserInfo(String provider_name, Map<String,Object> tokenResponse, ClientRegistration provider){
-        String socialUser = getUserforToken(tokenResponse, provider);
-        Map<String, String> oauth2User = new HashMap<>();
-        String email = "";
-        String nickname = "";
-
-        JsonObject jsonObject = (JsonObject) JsonParser.parseString(socialUser);
-        if(provider_name.equals("kakao")){
-            JsonObject user_properties = (JsonObject) jsonObject.get("properties");
-            JsonObject user_account = (JsonObject) jsonObject.get("kakao_account");
-            email = user_account.get("email").toString();
-            nickname = user_properties.get("nickname").toString();
-        }
-        else if(provider_name.equals("naver")){
-            JsonObject user_response = (JsonObject) jsonObject.get("response");
-            email = user_response.get("email").toString();
-            nickname = user_response.get("nickname").toString();
-        }
-        toSubstringDoubleQuotation(oauth2User,email,nickname);
-        return oauth2User;
+    private Map<String, String> getUserInfo_restApi(String provider_name, Map<String,Object> tokenResponse, ClientRegistration provider){
+        String socialUser = this.getUserforToken(tokenResponse, provider);
+        return this.setOauth2User(provider_name, socialUser);
     }
 
-    @Transactional
-    public SocialLoginResponse login(String provider_name, String code) {
-        ClientRegistration provider = inMemoryClientRegistrationRepository.findByRegistrationId(provider_name);
-        Map<String,Object> tokenResponse = getToken(code, provider);
-        log.debug("oauth2 token : {}", tokenResponse);
-
-        Map<String, String> oauth2user = getUserInfo(provider_name, tokenResponse, provider);
-        log.debug("oauth2 user : {} / nickname : {}", oauth2user.get("email"), oauth2user.get("nickname"));
-        Optional<User> existUser = userRepository.findByUserId(oauth2user.get("email"));
-        if(existUser.isPresent()){
-            // 기존 사용자 존재 ( 동일한 이메일 )
-            existUser.get().snsCheck(provider_name);
-            return this.userProvideJWT(existUser.get());
-        }
-        else{
-            // 기존 사용자가 없음 ( 신규 가입 )
-            User newUser = User.builder()
-                        .userId(oauth2user.get("email"))
-                        .nickname(oauth2user.get("nickname"))
-                        .role(Role.ROLE_USER)
-                        .snsKakao(false)
-                        .snsNaver(false)
-                        .emailAuthentication(true)
-                        .userBlock(false)
-                        .userState(false)
-                        .userPause(false)
-                        .kickoutCnt(0)
-                        .build();
-            User save = userRepository.save(newUser);
-            save.snsCheck(provider_name);
-            return this.userProvideJWT(save);
-        }
+    // access token 으로 oauth sever에 회원 정보 요청
+    private String getUserforToken(Map<String,Object> tokenResponse, ClientRegistration provider){
+        return WebClient.create()
+                .get()
+                .uri(provider.getProviderDetails().getUserInfoEndpoint().getUri())
+                .headers(header -> header.setBearerAuth(tokenResponse.get("access_token").toString()))
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
     }
-// ------------------------------------------------------------------------------------------------------------------
+    // rest api oauth2
+
+    // sdk oauth2
     @Transactional
     public SocialLoginResponse oauth2Login(String provider, String token) {
-        Map<String, String> oauth2user = this.getUserInfoFromAccessToken(provider, token);
-        log.debug("oauth2 user : {} / nickname : {}", oauth2user.get("email"), oauth2user.get("nickname"));
-        Optional<User> existUser = userRepository.findByUserId(oauth2user.get("email"));
-        if(existUser.isPresent()){
-            // 기존 사용자 존재 ( 동일한 이메일 )
-            existUser.get().snsCheck(provider);
-            return this.userProvideJWT(existUser.get());
-        }
-        else{
-            // 기존 사용자가 없음 ( 신규 가입 )
-            User newUser = User.builder()
-                    .userId(oauth2user.get("email"))
-                    .nickname(oauth2user.get("nickname"))
-                    .role(Role.ROLE_USER)
-                    .snsKakao(false)
-                    .snsNaver(false)
-                    .emailAuthentication(true)
-                    .userBlock(false)
-                    .userState(false)
-                    .userPause(false)
-                    .kickoutCnt(0)
-                    .build();
-            User save = userRepository.save(newUser);
-            save.snsCheck(provider);
-            return this.userProvideJWT(save);
-        }
-
+        Map<String, String> oauth2user = this.getUserInfo_sdk(provider, token);
+        return this.existUser(provider, oauth2user);
     }
 
-    private Map<String, String> getUserInfoFromAccessToken(String provider, String token) {
+    private Map<String, String> getUserInfo_sdk(String provider, String token) {
         String socialUser = this.getUser(token, provider);
-        Map<String, String> oauth2User = new HashMap<>();
-        String email = "";
-        String nickname = "";
-
-        JsonObject jsonObject = (JsonObject) JsonParser.parseString(socialUser);
-        if(provider.equals("kakao")){
-            JsonObject user_properties = (JsonObject) jsonObject.get("properties");
-            JsonObject user_account = (JsonObject) jsonObject.get("kakao_account");
-            email = user_account.get("email").toString();
-            nickname = user_properties.get("nickname").toString();
-        }
-        else if(provider.equals("naver")){
-            JsonObject user_response = (JsonObject) jsonObject.get("response");
-            email = user_response.get("email").toString();
-            nickname = user_response.get("nickname").toString();
-        }
-        toSubstringDoubleQuotation(oauth2User,email,nickname);
-        return oauth2User;
+        return this.setOauth2User(provider, socialUser);
     }
 
     private String getUser(String token, String provider){
@@ -195,30 +125,70 @@ public class SocialLoginService extends ResponseMap {
         }
     }
 
+    // rest & sdk 공통 메서드
+
     // 토큰으로 받아온 정보 parsing
     private void toSubstringDoubleQuotation(Map<String, String> oauth2User, String email, String nickname){
         oauth2User.put("email", email.substring(1, email.length()-1));
         oauth2User.put("nickname", nickname.substring(1, nickname.length()-1));
     }
 
-    // access token 으로 oauth sever에 회원 정보 요청
-    private String getUserforToken(Map<String,Object> tokenResponse, ClientRegistration provider){
-        return WebClient.create()
-                .get()
-                .uri(provider.getProviderDetails().getUserInfoEndpoint().getUri())
-                .headers(header -> header.setBearerAuth(tokenResponse.get("access_token").toString()))
-                .retrieve()
-                .bodyToMono(String.class)
-                .block();
-    }
-
     // 회원 정보 확인 후 jwt 토큰을 발급
-    private SocialLoginResponse userProvideJWT(User user){
+    private SocialLoginResponse userProvideJWT(User user, boolean firstLogin){
         String accessToken = jwtService.createAccessToken(user.getUserId());
         String refreshToken = jwtService.createRefreshToken();
         log.debug("accessToken : {}", accessToken);
         log.debug("refreshToken : {}", refreshToken);
         user.updateRefreshToken(refreshToken);
-        return SocialLoginResponse.from(user, accessToken, refreshToken);
+        return SocialLoginResponse.from(user, accessToken, refreshToken, firstLogin);
+    }
+
+    // 유저 정보 확인 후 db 처리
+    private SocialLoginResponse existUser(String provider_name, Map<String, String> oauth2user) {
+        Optional<User> existUser = userRepository.findByUserId(oauth2user.get("email"));
+        if(existUser.isPresent()){
+            // 기존 사용자 존재 ( 동일한 이메일 )
+            existUser.get().snsCheck(provider_name);
+            return this.userProvideJWT(existUser.get(), false);
+        }
+        else{
+            // 기존 사용자가 없음 ( 신규 가입 )
+            User newUser = User.builder()
+                    .userId(oauth2user.get("email"))
+                    .nickname(oauth2user.get("nickname"))
+                    .role(Role.ROLE_USER)
+                    .snsKakao(false)
+                    .snsNaver(false)
+                    .emailAuthentication(true)
+                    .userBlock(false)
+                    .userState(false)
+                    .userPause(false)
+                    .kickoutCnt(0)
+                    .build();
+            User save = userRepository.save(newUser);
+            save.snsCheck(provider_name);
+            return this.userProvideJWT(save, true);
+        }
+    }
+
+    private Map<String, String> setOauth2User(String provider_name, String socialUser) {
+        Map<String, String> oauth2User = new HashMap<>();
+        String email = "";
+        String nickname = "";
+
+        JsonObject jsonObject = (JsonObject) JsonParser.parseString(socialUser);
+        if(provider_name.equals("kakao")){
+            JsonObject user_properties = (JsonObject) jsonObject.get("properties");
+            JsonObject user_account = (JsonObject) jsonObject.get("kakao_account");
+            email = user_account.get("email").toString();
+            nickname = user_properties.get("nickname").toString();
+        }
+        else if(provider_name.equals("naver")){
+            JsonObject user_response = (JsonObject) jsonObject.get("response");
+            email = user_response.get("email").toString();
+            nickname = user_response.get("nickname").toString();
+        }
+        this.toSubstringDoubleQuotation(oauth2User,email,nickname);
+        return oauth2User;
     }
 }

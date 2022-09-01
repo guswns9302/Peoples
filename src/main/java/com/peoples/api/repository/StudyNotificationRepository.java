@@ -5,8 +5,9 @@ import com.peoples.api.domain.StudyNotification;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface StudyNotificationRepository extends JpaRepository<StudyNotification, Long> {
 
-    List<StudyNotification> findByPin(boolean pin);
+    Optional<StudyNotification> findByPin(boolean pin);
 }

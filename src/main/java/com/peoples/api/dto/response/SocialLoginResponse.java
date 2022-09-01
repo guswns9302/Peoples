@@ -13,12 +13,14 @@ public class SocialLoginResponse {
     private User user;
     private String accessToken;
     private String refreshToken;
+    private boolean firstLogin;
 
-    public static SocialLoginResponse from (User user, String accessToken, String refreshToken){
+    public static SocialLoginResponse from (User user, String accessToken, String refreshToken, boolean firstLogin){
         return SocialLoginResponse.builder()
                 .user(user)
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
+                .firstLogin(firstLogin)
                 .build();
     }
 }

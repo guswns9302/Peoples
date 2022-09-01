@@ -2,7 +2,7 @@ spring:
   profiles:
     group:
       "dev": "dev, common, jwt, email"
-      "prod": "dev,common, jwt, email, awsMysql"
+      "prod": "prod ,common, jwt, email, awsMysql"
 
 ---
 spring:
@@ -26,12 +26,6 @@ spring:
     database: mysql
     show-sql: true
 
-logging:
-  level:
-    '[com.peoples.api]': DEBUG
-    '[org.springframework]': INFO
-    '[org.springframework.data.elasticsearch.client.WIRE]': TRACE
-
 server:
   port: 8082
 
@@ -53,8 +47,18 @@ spring:
     username: root
     password: root
 
+logging:
+  level:
+    '[com.peoples.api]': DEBUG
+    '[org.springframework]': INFO
+    '[org.springframework.data.elasticsearch.client.WIRE]': TRACE
 ---
 spring:
   config:
     activate:
       on-profile: "prod"
+
+logging:
+  level:
+    root: ERROR
+    '[com.peoples.api]': INFO

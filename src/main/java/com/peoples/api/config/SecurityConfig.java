@@ -38,10 +38,18 @@ public class SecurityConfig {
     private final JwtService jwtService;
     private final ObjectMapper objectMapper;
 
-    private static final String[] SWAGGER_WHITE_LIST = {
+    private static final String[] PERMIt_LIST = {
             "/v3/api-docs/**",
             "/swagger-ui/**",
-            "/swagger-ui.html"
+            "/swagger-ui.html",
+            "/api/v1/signin",
+            "/api/v1/signup",
+            "/api/v1/signup/verification",
+            "/api/v1/user/password",
+            "/api/v1/downloadIMG",
+            "/api/v1/email/auth",
+            "/api/v1/login/oauth/**",
+            "/api/v1/login/oauth2/**"
     };
 
     @Bean
@@ -60,8 +68,7 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)// jwt 인증으로 세션 생성 안함.
             .and()
             .authorizeRequests()
-                .antMatchers(SWAGGER_WHITE_LIST).permitAll()
-                .antMatchers("/api/v1/signin", "/api/v1/signup", "/api/v1/signup/verification", "/api/v1/user/password", "/api/v1/downloadIMG", "/api/v1/email/auth", "/api/v1/login/oauth/**", "/api/v1/login/oauth2/**").permitAll()
+                .antMatchers(PERMIt_LIST).permitAll()
                 .antMatchers("/api/v1/**").hasRole("USER")
                 .anyRequest().authenticated();
 

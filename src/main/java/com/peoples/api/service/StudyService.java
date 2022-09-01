@@ -118,12 +118,12 @@ public class StudyService extends ResponseMap {
                 }
             });
 
-            List<StudyNotification> studyNotificationList = study.get().getStudyNotificationList();
-            if(studyNotificationList.isEmpty()){
+            Optional<StudyNotification> existNoti = studyNotificationRepository.findByPin(true);
+            if(existNoti.isEmpty()){
                 result.put("notification", null);
             }
             else{
-                result.put("notification", studyNotificationList.get(studyNotificationList.size()-1));
+                result.put("notification", StudyNotiAllResponse.from(existNoti.get()));
             }
             return this.responseMap("스터디 조회", result);
         }
@@ -182,7 +182,7 @@ public class StudyService extends ResponseMap {
         Optional<StudyNotification> findNoti = studyNotificationRepository.findById(Long.parseLong(param.get("notificationId").toString()));
         if(findNoti.isPresent()){
             if(param.get("pin").toString().equals("true")){
-                List<StudyNotification> existPin = studyNotificationRepository.findByPin(true);
+                Optional<StudyNotification> existPin = studyNotificationRepository.findByPin(true);
                 if(existPin.isEmpty()){
                     findNoti.get().updatePin(true);
                     return this.findStudyNoti(findNoti.get().getStudy().getStudyId());
