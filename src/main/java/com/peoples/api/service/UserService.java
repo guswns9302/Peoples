@@ -41,21 +41,9 @@ public class UserService extends ResponseMap {
         if(Boolean.parseBoolean(this.verificationEmail(param).get("result").toString())){
             // 비밀번호 - 비밀번호 확인 체크
             if(param.get("password").toString().equals(param.get("password_check").toString())){
-                String imgName = "5bda7b70-4557-4fea-8f7e-5797f0042a23_peoples_logo.png";
+                String imgName = "peoples_logo.png";
                 log.debug("file : {}", file.getOriginalFilename());
-                // img 등록
-                if(!file.getOriginalFilename().equals("")){
-                    UUID uuid = UUID.randomUUID();
-                    imgName = uuid + "_" + file.getOriginalFilename();
-                    File saveFile = new File(SAVE_IMG_DIRECTORY + "/profile/" + imgName);
-                    try {
-                        file.transferTo(saveFile);
-                    }
-                    catch (IOException e) {
-                        throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
-                    }
-                }
-                log.debug("profile img : {}", imgName);
+
                 User newUser = User.builder()
                         .userId(param.get("userId").toString())
                         .password(passwordEncoder.encode(param.get("password").toString()))
@@ -74,6 +62,20 @@ public class UserService extends ResponseMap {
                 if(save != null){
                     // 이메일 인증 메일 발송
                     emailService.createEmailAuthToken(save.getUserId(), save.getNickname());
+
+                    if(!file.getOriginalFilename().equals("")){
+                        UUID uuid = UUID.randomUUID();
+                        imgName = uuid + "_" + file.getOriginalFilename();
+                        File saveFile = new File(SAVE_IMG_DIRECTORY + "/profile/" + imgName);
+                        try {
+                            file.transferTo(saveFile);
+                            save.updateProfileImg(imgName);
+                        }
+                        catch (IOException e) {
+                            throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
+                        }
+                    }
+
                     // 회원정보가 저장 ok
                     return this.responseMap("회원가입 성공", true);
                 }
@@ -198,12 +200,13 @@ public class UserService extends ResponseMap {
     public Map<String,Object> updateUser(String userId, Map<String, Object> param, MultipartFile file) {
         Optional<User> user = userRepository.findByUserId(userId);
         if(user.isPresent()){
-            if(!param.get("password").toString().equals("") && !param.get("password_check").toString().equals("")){
+            if(!param.get("password").toString().equals("") && !param.get("password_check").toString().equals("") && !param.get("old_password").toString().equals("")){
+                log.debug("old_password : {}", param.get("old_password").toString());
                 log.debug("password : {}", param.get("password").toString() );
                 log.debug("password_check : {}", param.get("password_check").toString());
                 if(param.get("password").toString().equals(param.get("password_check").toString())){
                     BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-                    if(passwordEncoder.matches(param.get("password").toString(), user.get().getPassword())){
+                    if(passwordEncoder.matches(param.get("old_password").toString(), user.get().getPassword())){
                         user.get().updatePassword(passwordEncoder.encode(param.get("password").toString()));
                     }
                     else {

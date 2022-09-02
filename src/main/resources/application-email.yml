@@ -1,16 +1,6 @@
 spring:
   mail:
-    host: smtp.gmail.com
-    port: 587
-    username: peoples.noreply@gmail.com
-    password: zwsbehbymylbtpxy
-    properties:
-      mail:
-        smtp:
-          starttls:
-            enable: true
-            required: true
-          auth: true
-          connectiontimeout: 5000
-          timeout: 5000
-          writetimeout: 5000
+    host: smtp.naver.com
+    port: 465
+    username: peoples_noreply@naver.com
+    password: room#8peoples
