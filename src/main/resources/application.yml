@@ -10,6 +10,9 @@ spring:
     activate:
       on-profile: "common"
 
+  thymeleaf:
+    prefix: classpath:/templates/
+
   servlet:
     multipart:
       max-file-size: 200MB
