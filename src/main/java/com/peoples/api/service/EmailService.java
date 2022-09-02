@@ -51,7 +51,7 @@ public class EmailService {
         context.setVariable("auth",emailAuthToken.getId());
         context.setVariable("authURL", ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/v1/downloadIMG").queryParam("token", emailAuthToken.getId()).toUriString());
         log.info("test 확인");
-        String html = templateEngine.process("/emailAuthForm", context);
+        String html = templateEngine.process("emailAuthForm", context);
         log.info("html : {}" , html);
         try {
             MimeMessage message = mailSender.createMimeMessage();
