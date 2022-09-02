@@ -47,7 +47,7 @@ public class UserService extends ResponseMap {
                 if(!file.getOriginalFilename().equals("")){
                     UUID uuid = UUID.randomUUID();
                     imgName = uuid + "_" + file.getOriginalFilename();
-                    File saveFile = new File(SAVE_IMG_DIRECTORY + "/" + imgName);
+                    File saveFile = new File(SAVE_IMG_DIRECTORY + "/profile/" + imgName);
                     try {
                         file.transferTo(saveFile);
                     }
@@ -104,32 +104,6 @@ public class UserService extends ResponseMap {
     }
 
     @Transactional
-    public Map<String,Object> profileChange(String userId, MultipartFile file) {
-        Optional<User> user = userRepository.findByUserId(userId);
-        if(user.isPresent()){
-            String oldImg = user.get().getImg();
-            File deleteFile = new File(oldImg);
-            deleteFile.delete();
-
-            UUID uuid = UUID.randomUUID();
-            String newImg = uuid + "_" + file.getOriginalFilename();
-            File saveFile = new File(SAVE_IMG_DIRECTORY + "/" + newImg);
-            try {
-                file.transferTo(saveFile);
-                user.get().updateProfileImg(newImg);
-                String fileName = "fileName";
-
-                return this.responseMap("프로필이미지 변경 성공", ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/v1/downloadIMG").queryParam(fileName, user.get().getImg()).toUriString());
-            } catch (Exception e) {
-                throw new CustomException(ErrorCode.IMG_NOT_FOUND);
-            }
-        }
-        else{
-            throw new CustomException(ErrorCode.USER_NOT_FOUND);
-        }
-    }
-
-    @Transactional
     public Map<String,Object> deleteUser(String userId) {
         Optional<User> user = userRepository.findByUserId(userId);
         if(user.isPresent()){
@@ -147,18 +121,6 @@ public class UserService extends ResponseMap {
             }
             userRepository.delete(user.get());
             return this.responseMap("회원 탈퇴 성공", true);
-        }
-        else{
-            throw new CustomException(ErrorCode.USER_NOT_FOUND);
-        }
-    }
-
-    @Transactional
-    public Map<String,Object> changeNickname(String userId, Map<String, Object> param) {
-        Optional<User> user = userRepository.findByUserId(userId);
-        if(user.isPresent()){
-            user.get().updateNickname(param.get("nickname").toString());
-            return this.responseMap("닉네임이 변경되었습니다.", UserResponse.from(user.get()));
         }
         else{
             throw new CustomException(ErrorCode.USER_NOT_FOUND);
@@ -230,5 +192,55 @@ public class UserService extends ResponseMap {
     public Map<String,Object> reSendAuthMail(User user) {
         boolean result = emailService.createEmailAuthToken(user.getUserId(), user.getNickname());
         return this.responseMap("인증 메일 재발송!", result);
+    }
+
+    @Transactional
+    public Map<String,Object> updateUser(String userId, Map<String, Object> param, MultipartFile file) {
+        Optional<User> user = userRepository.findByUserId(userId);
+        if(user.isPresent()){
+            if(!param.get("password").toString().equals("") && !param.get("password_check").toString().equals("")){
+                log.debug("password : {}", param.get("password").toString() );
+                log.debug("password_check : {}", param.get("password_check").toString());
+                if(param.get("password").toString().equals(param.get("password_check").toString())){
+                    BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+                    if(passwordEncoder.matches(param.get("password").toString(), user.get().getPassword())){
+                        user.get().updatePassword(passwordEncoder.encode(param.get("password").toString()));
+                    }
+                    else {
+                        throw new CustomException(ErrorCode.PASSWORD_MISMATCH);
+                    }
+                }
+                else{
+                    throw new CustomException(ErrorCode.PASSWORD_MISMATCH);
+                }
+            }
+            if(!param.get("nickname").toString().equals("")){
+                log.debug("nickname : {}", param.get("nickname").toString());
+                user.get().updateNickname(param.get("nickname").toString());
+            }
+            if(!file.getOriginalFilename().equals("")){
+                log.debug("file : {}", file.getOriginalFilename());
+                String oldImg = user.get().getImg();
+                File deleteFile = new File(oldImg);
+                deleteFile.delete();
+
+                UUID uuid = UUID.randomUUID();
+                String newImg = uuid + "_" + file.getOriginalFilename();
+                File saveFile = new File(SAVE_IMG_DIRECTORY + "/profile/" + newImg);
+                try {
+                    file.transferTo(saveFile);
+                    user.get().updateProfileImg(newImg);
+                } catch (Exception e) {
+                    throw new CustomException(ErrorCode.IMG_NOT_FOUND);
+                }
+            }
+            String fileName = "fileName";
+            return this.responseMap("회원 정보 변경 성공",
+                            Map.of("nickname", user.get().getNickname(),
+                            "img", ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/v1/downloadIMG").queryParam(fileName, user.get().getImg()).toUriString()));
+        }
+        else{
+            throw new CustomException(ErrorCode.USER_NOT_FOUND);
+        }
     }
 }
