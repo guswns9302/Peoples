@@ -48,10 +48,10 @@ public class UserController {
 
         ModelAndView mav = new ModelAndView();
         if(result == true){
-            mav.setViewName("/emailAuthSuccess");
+            mav.setViewName("emailAuthSuccess");
         }
         else{
-            mav.setViewName("/emailAuthFail");
+            mav.setViewName("emailAuthFail");
         }
         return mav;
     }
