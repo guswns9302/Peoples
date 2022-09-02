@@ -41,21 +41,6 @@ public class UserController {
         return ResponseEntity.ok(userService.createUser(param, file));
     }
 
-    // 회원가입 이메일 인증
-    @GetMapping("/email/auth")
-    public ModelAndView emailAuth(@RequestParam String token){
-        boolean result = userService.emailAuth(token);
-
-        ModelAndView mav = new ModelAndView();
-        if(result == true){
-            mav.setViewName("emailAuthSuccess");
-        }
-        else{
-            mav.setViewName("emailAuthFail");
-        }
-        return mav;
-    }
-
     // 회원가입 이메일 인증 메일 재발송
     @GetMapping("/user/email/auth")
     public ResponseEntity<Map<String,Object>> reSendAuthMail(@AuthenticationPrincipal SecurityUser user){
