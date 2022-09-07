@@ -88,4 +88,10 @@ public class UserController {
     public ResponseEntity<Map<String,Object>> userUpdate(@AuthenticationPrincipal SecurityUser user, @RequestPart Map<String, Object> param, @RequestPart MultipartFile file){
         return ResponseEntity.ok(userService.updateUser(user.getUser().getUserId(),param, file));
     }
+
+    // 회원 정보 조회
+    @GetMapping("/user")
+    public ResponseEntity<Map<String,Object>> getUser(@AuthenticationPrincipal SecurityUser user){
+        return ResponseEntity.ok(userService.findUser(user.getUsername()));
+    }
 }

@@ -246,4 +246,16 @@ public class UserService extends ResponseMap {
             throw new CustomException(ErrorCode.USER_NOT_FOUND);
         }
     }
+
+    @Transactional(readOnly = true)
+    public Map<String,Object> findUser(String userId) {
+        Optional<User> user = userRepository.findByUserId(userId);
+        if(user.isPresent()){
+            String fileName = "fileName";
+            return this.responseMap("회원 정보 조회", Map.of("userId", user.get().getUserId(), "nickname", user.get().getNickname(), "img", ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/v1/downloadIMG").queryParam(fileName, user.get().getImg()).toUriString()));
+        }
+        else{
+            throw new CustomException(ErrorCode.USER_NOT_FOUND);
+        }
+    }
 }
