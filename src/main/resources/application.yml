@@ -1,8 +1,8 @@
 spring:
   profiles:
     group:
-      "dev": "dev, common, jwt, email"
-      "prod": "prod ,common, jwt, email, awsMysql"
+      "dev": "dev, common, jwtAuth, emailAuth"
+      "prod": "prod ,common, jwtAuth, emailAuth, awsMysql"
 
 ---
 spring:

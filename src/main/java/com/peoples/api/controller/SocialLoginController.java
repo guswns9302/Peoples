@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,9 +27,10 @@ public class SocialLoginController {
         headers.add("RefreshToken", result.getRefreshToken());
 
         Map<String,Object> responseMap = new HashMap<>();
-        responseMap.put("timestamp", LocalDateTime.now());
+        responseMap.put("timestamp", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         responseMap.put("message", "Social login success. Issued AccessToken , RefreshToken");
-        responseMap.put("result", Map.of("user", UserResponse.from(result.getUser()),"firstLogin", result.isFirstLogin()));
+        responseMap.put("firstLogin", result.isFirstLogin());
+        responseMap.put("result", Map.of("user", UserResponse.from(result.getUser())));
         return ResponseEntity.ok().headers(headers).body(responseMap);
     }
 

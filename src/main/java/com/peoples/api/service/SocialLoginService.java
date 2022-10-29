@@ -43,7 +43,6 @@ public class SocialLoginService extends ResponseMap {
     public SocialLoginResponse restApiLogin(String provider_name, String code) {
         ClientRegistration provider = inMemoryClientRegistrationRepository.findByRegistrationId(provider_name);
         Map<String,Object> tokenResponse = this.getToken(code, provider);
-        log.debug("oauth2 token : {}", tokenResponse);
         Map<String, String> oauth2user = this.getUserInfo_restApi(provider_name, tokenResponse, provider);
         return this.existUser(provider_name, oauth2user);
     }
@@ -137,8 +136,6 @@ public class SocialLoginService extends ResponseMap {
     private SocialLoginResponse userProvideJWT(User user, boolean firstLogin){
         String accessToken = jwtService.createAccessToken(user.getUserId());
         String refreshToken = jwtService.createRefreshToken();
-        log.debug("accessToken : {}", accessToken);
-        log.debug("refreshToken : {}", refreshToken);
         user.updateRefreshToken(refreshToken);
         return SocialLoginResponse.from(user, accessToken, refreshToken, firstLogin);
     }

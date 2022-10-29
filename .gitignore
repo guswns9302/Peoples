@@ -18,8 +18,8 @@ bin/
 !**/src/test/**/bin/
 
 ### IntelliJ IDEA ###
-application-jwt.yml
-application-email.yml
+application-jwtAuth.yml
+application-emailAuth.yml
 application-awsMysql.yml
 .idea
 *.iws
