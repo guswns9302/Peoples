@@ -1,9 +1,7 @@
 package com.peoples.api.service;
 
-import com.peoples.api.domain.Study;
-import com.peoples.api.domain.StudyMember;
-import com.peoples.api.domain.StudyNotification;
-import com.peoples.api.domain.UserStudyHistory;
+import com.peoples.api.domain.*;
+import com.peoples.api.domain.enumeration.AttendStatus;
 import com.peoples.api.domain.enumeration.ParticipationOperation;
 import com.peoples.api.domain.enumeration.Status;
 import com.peoples.api.domain.security.SecurityUser;
@@ -11,37 +9,49 @@ import com.peoples.api.dto.request.StudyNotiRequest;
 import com.peoples.api.dto.request.StudyRequest;
 import com.peoples.api.dto.response.StudyNotiAllResponse;
 import com.peoples.api.dto.response.StudyResponse;
+import com.peoples.api.dto.response.StudyScheduleResponse;
 import com.peoples.api.exception.CustomException;
 import com.peoples.api.exception.ErrorCode;
 import com.peoples.api.repository.*;
-import com.peoples.api.service.responseMap.ResponseMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class StudyService extends ResponseMap {
+public class StudyService {
 
     private final UserRepository userRepository;
     private final StudyRepository studyRepository;
     private final StudyMemberRepository studyMemberRepository;
     private final UserStudyHistoryRepository userStudyHistoryRepository;
     private final StudyNotificationRepository studyNotificationRepository;
+    private final StudyScheduleRepository studyScheduleRepository;
 
     private Optional<Study> getStudy(Long studyId){
-        return studyRepository.findById(studyId);
+        Optional<Study> isStudy = studyRepository.findById(studyId);
+        if(isStudy.isEmpty()){
+            throw new CustomException(ErrorCode.STUDY_NOT_FOUND);
+        }
+        else{
+            return isStudy;
+        }
     }
 
     @Transactional
-    public Map<String,Object> create(StudyRequest param, SecurityUser user) {
+    public StudyResponse create(StudyRequest param, SecurityUser user) {
         Study study = Study.builder()
                 .studyName(param.getStudyName())
-                .onoff(param.getOnoff())
+                .studyOn(param.isStudyOn())
+                .studyOff(param.isStudyOff())
                 .studyCategory(param.getStudyCategory())
                 .studyInfo(param.getStudyInfo())
                 .studyRule(param.getStudyRule())
@@ -70,7 +80,7 @@ public class StudyService extends ResponseMap {
                                                                 .build();
 
             if(studyMemberRepository.save(studyMember) != null && userStudyHistoryRepository.save(userStudyHistory) != null){
-                return this.responseMap("스터디 생성에 성공하였습니다.", StudyResponse.from(createStudy));
+                return StudyResponse.from(createStudy);
             }
             else{
                 throw new CustomException(ErrorCode.USER_NOT_FOUND);
@@ -82,7 +92,7 @@ public class StudyService extends ResponseMap {
     }
 
 
-    public Map<String,Object> findAll(String userId) {
+    public List<StudyResponse> findAll(String userId) {
         List<StudyMember> studyByUserId = userRepository.findByUserId(userId).get().getStudyMemberList();
 
         if(!studyByUserId.isEmpty()){
@@ -91,10 +101,10 @@ public class StudyService extends ResponseMap {
                 joinStudyList.add(StudyResponse.from(data.getStudy()));
             });
 
-            return this.responseMap("참여 중인 스터디 목록 조회", joinStudyList);
+            return joinStudyList;
         }
         else{
-            return this.responseMap("참여 중인 스터디가 없습니다.", null);
+            return null;
         }
     }
 
@@ -125,7 +135,87 @@ public class StudyService extends ResponseMap {
             else{
                 result.put("notification", StudyNotiAllResponse.from(existNoti.get()));
             }
-            return this.responseMap("스터디 조회", result);
+
+            List<Long> nearDay = new ArrayList<>();
+            List<StudySchedule> studyScheduleList = new ArrayList<>();
+            study.get().getStudyScheduleList().forEach(x->{
+                // 스터디 날짜 및 시작 시간 조합
+                LocalDate scheduleDate = x.getStudyScheduleDate();
+                String startDateStr = scheduleDate.toString() + " " + x.getStudyScheduleStart();
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+                LocalDateTime scheduleDateTimeStart = LocalDateTime.parse(startDateStr, formatter);
+
+                // 스터디 날짜 및 종료 시간 조합
+                String endDateStr = scheduleDate.toString() + " " + x.getStudyScheduleEnd();
+                LocalDateTime scheduleDateTimeEnd = LocalDateTime.parse(endDateStr, formatter);
+
+                // 현재시간
+                LocalDateTime current = LocalDateTime.now();
+                LocalDateTime now = LocalDateTime.parse(current.format(formatter), formatter);
+                log.debug("현재 시간 : {}", now);
+                log.debug("스터디 시작 시간 : {}", scheduleDateTimeStart);
+                log.debug("스터디 종료 시간 : {}", scheduleDateTimeEnd);
+
+                if(now.isBefore(scheduleDateTimeEnd)){
+                    Duration duration = Duration.between(now,scheduleDateTimeStart);
+                    nearDay.add(duration.getSeconds());
+                    studyScheduleList.add(x);
+                }
+
+            });
+            long min = 0;
+            if(nearDay.size() > 0){
+                min = Collections.min(nearDay);
+                result.put("studySchedule",StudyScheduleResponse.from(studyScheduleList.get(nearDay.indexOf(min))));
+                if(min < 0){
+                    min = 0;
+                }
+                else{
+                    min = min / 60 / 60;
+                }
+                result.put("dayCnt", min);
+            }
+            else{
+                result.put("dayCnt", min);
+                result.put("studySchedule",null);
+            }
+
+            List<Integer> totalFine = new ArrayList<>();
+            List<Integer> totalAttendance = new ArrayList<>();
+            List<Integer> totalLateness = new ArrayList<>();
+            List<Integer> totalAbsent = new ArrayList<>();
+            List<Integer> totalHold = new ArrayList<>();
+            study.get().getStudyScheduleList().forEach(x->{
+                x.getAttendanceList().forEach(y->{
+                    totalFine.add(y.getFine());
+                    if(y.getAttendStatus().equals(AttendStatus.ATTENDANCE)){
+                        totalAttendance.add(1);
+                    }
+                    else if(y.getAttendStatus().equals(AttendStatus.LATENESS)){
+                        totalLateness.add(1);
+                    }
+                    else if(y.getAttendStatus().equals(AttendStatus.ABSENT)){
+                        totalAbsent.add(1);
+                    }
+                    else if(y.getAttendStatus().equals(AttendStatus.HOLD)){
+                        totalHold.add(1);
+                    }
+                });
+            });
+
+            int fine = totalFine.stream().mapToInt(Integer::intValue).sum();
+            int attendanceCnt = totalAttendance.stream().mapToInt(Integer::intValue).sum();
+            int latenessCnt = totalLateness.stream().mapToInt(Integer::intValue).sum();
+            int absentCnt = totalAbsent.stream().mapToInt(Integer::intValue).sum();
+            int holdCnt = totalHold.stream().mapToInt(Integer::intValue).sum();
+
+            result.put("totalFine",fine);
+            result.put("attendanceCnt",attendanceCnt);
+            result.put("latenessCnt",latenessCnt);
+            result.put("absentCnt",absentCnt);
+            result.put("holdCnt",holdCnt);
+
+            return result;
         }
         else{
             throw new CustomException(ErrorCode.RESULT_NOT_FOUND);
@@ -133,14 +223,14 @@ public class StudyService extends ResponseMap {
     }
 
     @Transactional(readOnly = true)
-    public Map<String,Object> findStudyNoti(Long studyId) {
+    public List<StudyNotiAllResponse> findStudyNoti(Long studyId) {
         Optional<Study> study = this.getStudy(studyId);
         if(study.isPresent()){
             List<StudyNotiAllResponse> notiList = new ArrayList<>();
             study.get().getStudyNotificationList().forEach(list->{
                notiList.add(StudyNotiAllResponse.from(list));
             });
-            return this.responseMap("스터디 공지 전체 조회", notiList);
+            return notiList;
         }
         else{
             throw new CustomException(ErrorCode.STUDY_NOT_FOUND);
@@ -148,7 +238,7 @@ public class StudyService extends ResponseMap {
     }
 
     @Transactional
-    public Map<String,Object> createStudyNoti(StudyNotiRequest studyNotiRequest) {
+    public List<StudyNotiAllResponse> createStudyNoti(StudyNotiRequest studyNotiRequest) {
         Optional<Study> study = this.getStudy(studyNotiRequest.getStudyId());
 
         StudyNotification newNotification = StudyNotification.builder()
@@ -164,7 +254,7 @@ public class StudyService extends ResponseMap {
     }
 
     @Transactional
-    public Map<String,Object> updateStudyNoti(Map<String, Object> param) {
+    public List<StudyNotiAllResponse> updateStudyNoti(Map<String, Object> param) {
         Optional<StudyNotification> findNoti = studyNotificationRepository.findById(Long.parseLong(param.get("notificationId").toString()));
         if(findNoti.isPresent()){
             findNoti.get().updateSubject(param.get("notificationSubject").toString());
@@ -178,7 +268,7 @@ public class StudyService extends ResponseMap {
     }
 
     @Transactional
-    public Map<String,Object> updatePin(Map<String, Object> param) {
+    public List<StudyNotiAllResponse> updatePin(Map<String, Object> param) {
         Optional<StudyNotification> findNoti = studyNotificationRepository.findById(Long.parseLong(param.get("notificationId").toString()));
         if(findNoti.isPresent()){
             if(param.get("pin").toString().equals("true")){
@@ -202,7 +292,7 @@ public class StudyService extends ResponseMap {
     }
 
     @Transactional
-    public Map<String,Object> deleteStudyNoti(Long notificationId) {
+    public List<StudyNotiAllResponse> deleteStudyNoti(Long notificationId) {
         Optional<StudyNotification> findNoti = studyNotificationRepository.findById(notificationId);
         if(findNoti.isPresent()){
             Long studyId = findNoti.get().getStudy().getStudyId();
@@ -212,6 +302,63 @@ public class StudyService extends ResponseMap {
         }
         else{
             throw new CustomException(ErrorCode.RESULT_NOT_FOUND);
+        }
+    }
+
+    @Transactional
+    public boolean join(long studyId, User user) {
+        Optional<Study> study = this.getStudy(studyId);
+        if(study.isPresent()){
+            if(study.get().getStatus().toString().equals("STOP")){
+                return false;
+            }
+            else{
+                StudyMember studyMember = StudyMember.builder()
+                        .user(user)
+                        .study(study.get())
+                        .userManager(false)
+                        .userRole("")
+                        .deposit(Integer.parseInt(study.get().getStudyRule().get("deposit").toString()))
+                        .build();
+
+                UserStudyHistory userStudyHistory = UserStudyHistory.builder()
+                        .user(user)
+                        .studyName(study.get().getStudyName())
+                        .start(study.get().getCreatedAt())
+                        .po(ParticipationOperation.PARTICIPATION)
+                        .build();
+
+                studyMemberRepository.save(studyMember);
+                userStudyHistoryRepository.save(userStudyHistory);
+                return true;
+            }
+        }
+        else{
+            throw new CustomException(ErrorCode.STUDY_NOT_FOUND);
+        }
+    }
+
+    @Transactional
+    public StudyResponse updateStudy(long studyId, StudyRequest param) {
+        Optional<Study> study = studyRepository.findById(studyId);
+        if(study.isPresent()){
+            study.get().updateStudyInfo(param);
+            return StudyResponse.from(study.get());
+        }
+        else{
+            throw new CustomException(ErrorCode.STUDY_NOT_FOUND);
+        }
+    }
+
+    @Transactional
+    public boolean finishStudy(long studyId) {
+        Optional<Study> study = studyRepository.findById(studyId);
+        if(study.isPresent()){
+            study.get().finish(Status.STOP);
+            return true;
+        }
+        else{
+            throw new CustomException(ErrorCode.STUDY_NOT_FOUND);
         }
     }
 }

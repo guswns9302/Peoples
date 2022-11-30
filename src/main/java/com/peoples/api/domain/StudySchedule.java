@@ -1,16 +1,17 @@
 package com.peoples.api.domain;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Entity
 @Getter
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "TB_STUDY_SCHEDULE")
 public class StudySchedule {
@@ -30,6 +31,12 @@ public class StudySchedule {
     @Column(name = "SCHEDULE_DATE")
     private LocalDate studyScheduleDate;
 
+    @Column(name = "SCHEDULE_START")
+    private String studyScheduleStart;
+
+    @Column(name = "SCHEDULE_END")
+    private String studyScheduleEnd;
+
     @Column(name = "SCHEDULE_PLACE")
     private String studySchedulePlace;
 
@@ -38,4 +45,12 @@ public class StudySchedule {
 
     @OneToMany(mappedBy = "studySchedule")
     private List<Attendance> attendanceList = new ArrayList<>();
+
+    public void updateStudySchedule(Map<String, Object> param){
+        this.studyScheduleDate = LocalDate.parse(param.get("studyScheduleDate").toString());
+        this.studyScheduleName = param.get("studyScheduleName").toString();
+        this.studyScheduleStart = param.get("studyScheduleStart").toString();
+        this.studyScheduleEnd = param.get("studyScheduleEnd").toString();
+        this.studySchedulePlace = param.get("studySchedulePlace").toString();
+    }
 }

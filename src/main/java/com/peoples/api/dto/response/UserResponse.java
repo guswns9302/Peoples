@@ -15,6 +15,9 @@ public class UserResponse {
     private boolean userStats;
     private boolean userBlock;
     private boolean userPause;
+    private boolean pushStart;
+    private boolean pushImminent;
+    private boolean pushDayAgo;
 
     public static UserResponse from(User user){
         String fileName = "fileName";
@@ -26,6 +29,9 @@ public class UserResponse {
                     .userStats(user.isUserState())
                     .userBlock(user.isUserBlock())
                     .userPause(user.isUserPause())
+                    .pushStart(user.isPushStart())
+                    .pushImminent(user.isPushImminent())
+                    .pushDayAgo(user.isPushDayAgo())
                     .build();
         return userResponse;
     }

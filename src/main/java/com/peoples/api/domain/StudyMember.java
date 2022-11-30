@@ -34,4 +34,17 @@ public class StudyMember {
     @Column(name = "DEPOSIT")
     private int deposit;
 
+    public void updateRole(String role){
+        this.userRole = role;
+    }
+
+    public void updateManager(boolean manager){
+        if(manager){
+            this.userManager = false;
+        }
+        else{
+            this.userManager = true;
+        }
+    }
+
 }

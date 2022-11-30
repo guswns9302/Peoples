@@ -1,6 +1,5 @@
 package com.peoples.api.dto.request;
 
-import com.peoples.api.domain.enumeration.Onoff;
 import com.peoples.api.domain.enumeration.StudyCategory;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,7 +13,8 @@ import java.util.Map;
 public class StudyRequest {
     private String studyName;
     private StudyCategory studyCategory;
-    private Onoff onoff;
+    private boolean studyOn;
+    private boolean studyOff;
     private String studyInfo;
     private Map<String, Object> studyRule;
     private String studyFlow;

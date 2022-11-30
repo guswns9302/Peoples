@@ -10,7 +10,6 @@ import com.peoples.api.exception.CustomException;
 import com.peoples.api.exception.ErrorCode;
 import com.peoples.api.repository.UserRepository;
 import com.peoples.api.repository.UserScheduleRepository;
-import com.peoples.api.service.responseMap.ResponseMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,27 +23,27 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class UserScheduleService extends ResponseMap {
+public class UserScheduleService {
 
     private final UserRepository userRepository;
     private final UserScheduleRepository userScheduleRepository;
 
     @Transactional(readOnly = true)
-    public Map<String,Object> findUserSchedule(String userId) {
+    public List<UserScheduleResponse> findUserSchedule(String userId) {
         Optional<User> byUserId = userRepository.findByUserId(userId);
 
         List<UserScheduleResponse> userScheduleList = byUserId.get().getUserScheduleList().stream().map(UserScheduleResponse::from).collect(Collectors.toList());
 
         if(userScheduleList.isEmpty()){
-            return this.responseMap("사용자 일정이 없습니다", null);
+            return null;
         }
         else{
-            return this.responseMap("사용자 일정 조회", userScheduleList);
+            return userScheduleList;
         }
     }
 
     @Transactional
-    public Map<String,Object> createUserSchedule(UserScheduleRequest userScheduleRequest, SecurityUser user) {
+    public List<UserScheduleResponse> createUserSchedule(UserScheduleRequest userScheduleRequest, SecurityUser user) {
         log.debug("request : {}, userId : {}", userScheduleRequest, user.getUsername());
 
         UserSchedule newUserSchedule = UserSchedule.builder()
@@ -64,7 +63,7 @@ public class UserScheduleService extends ResponseMap {
     }
 
     @Transactional
-    public Map<String,Object> updateStatus(long scheduleId) {
+    public List<UserScheduleResponse> updateStatus(long scheduleId) {
         log.debug("scheduleId : {}", scheduleId);
         Optional<UserSchedule> schedule = userScheduleRepository.findById(scheduleId);
         if(schedule.isPresent()){
@@ -82,7 +81,7 @@ public class UserScheduleService extends ResponseMap {
     }
 
     @Transactional
-    public Map<String,Object> updateSchedule(Map<String, Object> param) {
+    public List<UserScheduleResponse> updateSchedule(Map<String, Object> param) {
         Optional<UserSchedule> schedule = userScheduleRepository.findById(Long.parseLong(param.get("scheduleId").toString()));
         if(schedule.isPresent()){
             if(param.get("scheduleName") != null || param.get("scheduleName") != ""){

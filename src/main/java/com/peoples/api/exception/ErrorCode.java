@@ -14,6 +14,27 @@ public enum ErrorCode {
     DUPLICATE_EMAIL(HttpStatus.BAD_REQUEST, "중복된 이메일 입니다."),
 
     /* 400 BAD_REQUEST : 잘못된 요청 */
+    NOT_MANAGER(HttpStatus.BAD_REQUEST, "관리자가 아닙니다."),
+
+    /* 400 BAD_REQUEST : 잘못된 요청 */
+    NOT_STUDY_MEMBER(HttpStatus.BAD_REQUEST, "스터디 멤버가 아닙니다."),
+
+    /* 400 BAD_REQUEST : 잘못된 요청 */
+    USER_MISMATCH_SCHEDULE(HttpStatus.BAD_REQUEST, "사용자가 매칭되지 않습니다."),
+
+    /* 400 BAD_REQUEST : 잘못된 요청 */
+    CHECK_NUMBER_MISMATCH(HttpStatus.BAD_REQUEST, "인증번호가 일치하지 않습니다."),
+
+    /* 400 BAD_REQUEST : 잘못된 요청 */
+    DO_NOT_SELF_EXPIRE(HttpStatus.BAD_REQUEST, "자기 자신은 추방할 수 없습니다."),
+
+    /* 400 BAD_REQUEST : 잘못된 요청 */
+    MASTER_DO_NOT_EXPIRE(HttpStatus.BAD_REQUEST, "스터디장은 추방할 수 없습니다."),
+
+    /* 400 BAD_REQUEST : 잘못된 요청 */
+    MASTER_DO_NOT_CHANGE(HttpStatus.BAD_REQUEST, "스터디장은 변경할 수 없습니다.."),
+
+    /* 400 BAD_REQUEST : 잘못된 요청 */
     ILLEGAL_LOGIN(HttpStatus.BAD_REQUEST, "허용되지 않은 로그인 방식 입니다."),
 
     /* 400 BAD_REQUEST : 잘못된 요청 */

@@ -4,13 +4,12 @@ import com.peoples.api.domain.EmailAuthToken;
 import com.peoples.api.domain.StudyMember;
 import com.peoples.api.domain.User;
 import com.peoples.api.domain.enumeration.Role;
+import com.peoples.api.dto.response.DeleteUserResponse;
 import com.peoples.api.dto.response.StudyResponse;
-import com.peoples.api.dto.response.UserResponse;
 import com.peoples.api.dto.response.UserStudyHistoryResponse;
 import com.peoples.api.exception.CustomException;
 import com.peoples.api.exception.ErrorCode;
 import com.peoples.api.repository.UserRepository;
-import com.peoples.api.service.responseMap.ResponseMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -27,7 +26,7 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class UserService extends ResponseMap {
+public class UserService {
 
     private final UserRepository userRepository;
     private final EmailService emailService;
@@ -35,10 +34,10 @@ public class UserService extends ResponseMap {
     private static final String SAVE_IMG_DIRECTORY = System.getProperty("user.home");
 
     @Transactional
-    public Map<String,Object> createUser(Map<String, Object> param, MultipartFile file){
+    public Boolean createUser(Map<String, Object> param, MultipartFile file){
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         // 이메일 중복 검증
-        if(Boolean.parseBoolean(this.verificationEmail(param).get("result").toString())){
+        if(this.verificationEmail(param)){
             // 비밀번호 - 비밀번호 확인 체크
             if(param.get("password").toString().equals(param.get("password_check").toString())){
                 String imgName = "peoples_logo.png";
@@ -56,6 +55,9 @@ public class UserService extends ResponseMap {
                         .userBlock(false)
                         .userState(false)
                         .userPause(false)
+                        .pushStart(true)
+                        .pushImminent(true)
+                        .pushDayAgo(true)
                         .kickoutCnt(0)
                         .build();
                 User save = userRepository.save(newUser);
@@ -77,7 +79,7 @@ public class UserService extends ResponseMap {
                     }
 
                     // 회원정보가 저장 ok
-                    return this.responseMap("회원가입 성공", true);
+                    return true;
                 }
                 else{
                     // 회원정보가 저장 실패
@@ -95,19 +97,22 @@ public class UserService extends ResponseMap {
         }
     }
 
-    public Map<String,Object> verificationEmail(Map<String, Object> param) {
+    public Boolean verificationEmail(Map<String, Object> param) {
         Optional<User> existUser = userRepository.findByUserId(param.get("userId").toString());
         if(existUser.isPresent()){
-            return this.responseMap("중복된 Email 이 있습니다.",false);
+            // 중복된 이메일이 있음 false
+            return false;
         }
         else{
-            return this.responseMap("중복된 Email 이 없습니다.", true);
+            // 중복된 이메일이 없음 true
+            return true;
         }
     }
 
     @Transactional
-    public Map<String,Object> deleteUser(String userId) {
+    public DeleteUserResponse deleteUser(String userId) {
         Optional<User> user = userRepository.findByUserId(userId);
+
         if(user.isPresent()){
             List<StudyMember> studyMemberList = user.get().getStudyMemberList();
             if(!studyMemberList.isEmpty()){
@@ -118,11 +123,11 @@ public class UserService extends ResponseMap {
                     }
                 });
                 if(!studyResponseList.isEmpty()){
-                    return this.responseMap("스터디장을 위임한 뒤 탈퇴하십시오.", studyResponseList);
+                    return DeleteUserResponse.builder().result(false).studyMemberList(studyResponseList).build();
                 }
             }
             userRepository.delete(user.get());
-            return this.responseMap("회원 탈퇴 성공", true);
+            return DeleteUserResponse.builder().result(true).build();
         }
         else{
             throw new CustomException(ErrorCode.USER_NOT_FOUND);
@@ -130,11 +135,11 @@ public class UserService extends ResponseMap {
     }
 
     @Transactional(readOnly = true)
-    public Map<String,Object> history(String userId) {
+    public List<UserStudyHistoryResponse> history(String userId) {
         Optional<User> user = userRepository.findByUserId(userId);
         if(user.isPresent()){
             List<UserStudyHistoryResponse> userStudyHistoryList = user.get().getUserStudyHistoryList().stream().map(UserStudyHistoryResponse::from).collect(Collectors.toList());
-            return this.responseMap("참여한 스터디 기록", userStudyHistoryList);
+            return userStudyHistoryList;
         }
         else{
             throw new CustomException(ErrorCode.USER_NOT_FOUND);
@@ -156,14 +161,14 @@ public class UserService extends ResponseMap {
     }
 
     @Transactional
-    public Map<String,Object> tempPassword(String userId){
+    public Boolean tempPassword(String userId){
         Optional<User> user = userRepository.findByUserId(userId);
         if(user.isPresent()){
             BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
             String temp_pw = this.getRandomPw();
             user.get().updatePassword(passwordEncoder.encode(temp_pw));
             emailService.sendTempPw(userId,temp_pw);
-            return this.responseMap("임시 비밀번호 전송 성공", true);
+            return true;
         }
         else{
             throw new CustomException(ErrorCode.USER_NOT_FOUND);
@@ -191,9 +196,8 @@ public class UserService extends ResponseMap {
         return key.toString();
     }
 
-    public Map<String,Object> reSendAuthMail(User user) {
-        boolean result = emailService.createEmailAuthToken(user.getUserId(), user.getNickname());
-        return this.responseMap("인증 메일 재발송!", result);
+    public Boolean reSendAuthMail(User user) {
+        return emailService.createEmailAuthToken(user.getUserId(), user.getNickname());
     }
 
     @Transactional
@@ -238,9 +242,7 @@ public class UserService extends ResponseMap {
                 }
             }
             String fileName = "fileName";
-            return this.responseMap("회원 정보 변경 성공",
-                            Map.of("nickname", user.get().getNickname(),
-                            "img", ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/v1/downloadIMG").queryParam(fileName, user.get().getImg()).toUriString()));
+            return Map.of("nickname", user.get().getNickname(), "img", ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/v1/downloadIMG").queryParam(fileName, user.get().getImg()).toUriString());
         }
         else{
             throw new CustomException(ErrorCode.USER_NOT_FOUND);
@@ -252,10 +254,44 @@ public class UserService extends ResponseMap {
         Optional<User> user = userRepository.findByUserId(userId);
         if(user.isPresent()){
             String fileName = "fileName";
-            return this.responseMap("회원 정보 조회", Map.of("userId", user.get().getUserId(), "nickname", user.get().getNickname(), "img", ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/v1/downloadIMG").queryParam(fileName, user.get().getImg()).toUriString()));
+            return Map.of("userId", user.get().getUserId(),
+                    "nickname", user.get().getNickname(),
+                    "img", ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/v1/downloadIMG").queryParam(fileName, user.get().getImg()).toUriString(),
+                    "sns_kakao", user.get().isSnsKakao(),
+                    "sns_naver", user.get().isSnsNaver());
         }
         else{
             throw new CustomException(ErrorCode.USER_NOT_FOUND);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public Boolean checkPassword(Map<String, String> param) {
+        User user = userRepository.findByUserId(param.get("userId")).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        if(passwordEncoder.matches(param.get("password"), user.getPassword())){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
+    @Transactional
+    public void pushStart(String userId) {
+        User user = userRepository.findByUserId(userId).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        user.changePushStart(user.isPushStart());
+    }
+
+    @Transactional
+    public void pushImminent(String userId) {
+        User user = userRepository.findByUserId(userId).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        user.changePushImminent(user.isPushImminent());
+    }
+
+    @Transactional
+    public void pushDay(String userId) {
+        User user = userRepository.findByUserId(userId).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        user.changePushDay(user.isPushDayAgo());
     }
 }

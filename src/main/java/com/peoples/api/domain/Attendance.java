@@ -1,14 +1,14 @@
 package com.peoples.api.domain;
 
 import com.peoples.api.domain.enumeration.AttendStatus;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 
 @Entity
 @Getter
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "TB_ATTENDANCE")
 public class Attendance {
@@ -34,4 +34,9 @@ public class Attendance {
 
     @Column(name = "FINE")
     private int fine;
+
+    public void updateStatusAndFine(String attendStatus, int fine){
+        this.fine = fine;
+        this.attendStatus = AttendStatus.valueOf(attendStatus);
+    }
 }

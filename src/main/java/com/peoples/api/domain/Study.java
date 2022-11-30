@@ -1,8 +1,8 @@
 package com.peoples.api.domain;
 
-import com.peoples.api.domain.enumeration.Onoff;
 import com.peoples.api.domain.enumeration.Status;
 import com.peoples.api.domain.enumeration.StudyCategory;
+import com.peoples.api.dto.request.StudyRequest;
 import com.vladmihalcea.hibernate.type.json.JsonStringType;
 import lombok.*;
 import org.hibernate.annotations.Type;
@@ -40,9 +40,11 @@ public class Study {
     @Enumerated(EnumType.STRING)
     private StudyCategory studyCategory;
 
-    @Column(name = "STUDY_ONOFF")
-    @Enumerated(EnumType.STRING)
-    private Onoff onoff;
+    @Column(name = "STUDY_ON")
+    private boolean studyOn;
+
+    @Column(name = "STUDY_OFF")
+    private boolean studyOff;
 
     @Column(name = "STUDY_INFO")
     private String studyInfo; // 한줄소개
@@ -53,9 +55,6 @@ public class Study {
 
     @Column(name = "STUDY_FLOW")
     private String studyFlow; // 진행방식
-
-    @Column(name = "STUDY_REGION")
-    private String studyRegion; // 지역
 
     @CreatedDate
     @Column(name = "CREATED_AT", updatable = false, nullable = false)
@@ -76,9 +75,6 @@ public class Study {
     private boolean studyPause; // 일시 정지
 
     @OneToMany(mappedBy = "study")
-    private List<Vote> voteList = new ArrayList<>();
-
-    @OneToMany(mappedBy = "study")
     private List<StudyMember> studyMemberList = new ArrayList<>();
 
     @OneToMany(mappedBy = "study")
@@ -86,4 +82,18 @@ public class Study {
 
     @OneToMany(mappedBy = "study")
     private List<StudyNotification> studyNotificationList = new ArrayList<>();
+
+    public void updateStudyInfo (StudyRequest param){
+        this.studyName = param.getStudyName();
+        this.studyCategory = param.getStudyCategory();
+        this.studyOn = param.isStudyOn();
+        this.studyOff = param.isStudyOff();
+        this.studyInfo = param.getStudyInfo();
+        this.studyRule = param.getStudyRule();
+        this.studyFlow = param.getStudyFlow();
+    }
+
+    public void finish(Status status){
+        this.status = status;
+    }
 }

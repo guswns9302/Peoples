@@ -71,6 +71,15 @@ public class User {
     @Column(name = "USER_PAUSE")
     private boolean userPause; // 일시 정지
 
+    @Column(name = "PUSH_START")
+    private boolean pushStart; // 스터디 시작 10분전 알림
+
+    @Column(name = "PUSH_IMMINENT")
+    private boolean pushImminent; // 스터디 시작 임박 (3시간 전) 알림
+
+    @Column(name = "PUSH_DAY_AGO")
+    private boolean pushDayAgo; // 스터디 시작 예정 (24시간 전) 알림
+
     @OneToMany(mappedBy = "user")
     private List<StudyMember> studyMemberList = new ArrayList<>();
 
@@ -106,6 +115,33 @@ public class User {
         }
         else if(provider_name.equals("naver")){
             this.snsNaver = true;
+        }
+    }
+
+    public void changePushStart(boolean old){
+        if(old){
+            this.pushStart = false;
+        }
+        else{
+            this.pushStart = true;
+        }
+    }
+
+    public void changePushImminent(boolean old){
+        if(old){
+            this.pushImminent = false;
+        }
+        else{
+            this.pushImminent = true;
+        }
+    }
+
+    public void changePushDay(boolean old){
+        if(old){
+            this.pushDayAgo = false;
+        }
+        else{
+            this.pushDayAgo = true;
         }
     }
 }

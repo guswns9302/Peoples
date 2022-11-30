@@ -18,8 +18,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -40,13 +38,10 @@ public class LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
         Optional<User> user = userRepository.findByUserId(userId);
         user.get().updateLastLogin(LocalDateTime.now());
 
-        Map<String, Object> responseData = new HashMap<>();
-        responseData.put("timestamp", LocalDateTime.now());
-        responseData.put("message", "Login success. Issued AccessToken , RefreshToken");
-        responseData.put("result", UserResponse.from(user.get()));
+        UserResponse.from(user.get());
 
         Gson gson = new GsonBuilder().registerTypeAdapter(LocalDateTime.class, new GsonConfig()).disableHtmlEscaping().setPrettyPrinting().create();
-        response.getWriter().write(gson.toJson(responseData));
+        response.getWriter().write(gson.toJson(UserResponse.from(user.get())));
     }
 
 

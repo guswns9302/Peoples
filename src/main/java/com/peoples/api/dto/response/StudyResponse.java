@@ -1,10 +1,11 @@
 package com.peoples.api.dto.response;
 
 import com.peoples.api.domain.Study;
-import com.peoples.api.domain.enumeration.Onoff;
 import com.peoples.api.domain.enumeration.StudyCategory;
 import lombok.Builder;
 import lombok.Getter;
+
+import java.util.Map;
 
 @Getter
 @Builder
@@ -12,7 +13,9 @@ public class StudyResponse {
     private long studyId;
     private String studyName;
     private StudyCategory studyCategory;
-    private Onoff onoff;
+    private Map<String,Object> studyRule;
+    private boolean studyOn;
+    private boolean studyOff;
     private String studyInfo;
     private boolean studyBlock;
     private boolean studyPause;
@@ -23,7 +26,9 @@ public class StudyResponse {
                 .studyId(study.getStudyId())
                 .studyName(study.getStudyName())
                 .studyCategory(study.getStudyCategory())
-                .onoff(study.getOnoff())
+                .studyRule(study.getStudyRule())
+                .studyOn(study.isStudyOn())
+                .studyOff(study.isStudyOff())
                 .studyInfo(study.getStudyInfo())
                 .studyPause(study.isStudyPause())
                 .studyBlock(study.isStudyBlock())

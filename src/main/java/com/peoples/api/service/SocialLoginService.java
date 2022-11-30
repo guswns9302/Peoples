@@ -1,16 +1,13 @@
 package com.peoples.api.service;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.peoples.api.domain.User;
 import com.peoples.api.domain.enumeration.Role;
 import com.peoples.api.dto.response.SocialLoginResponse;
-import com.peoples.api.dto.response.UserResponse;
 import com.peoples.api.exception.CustomException;
 import com.peoples.api.exception.ErrorCode;
 import com.peoples.api.repository.UserRepository;
-import com.peoples.api.service.responseMap.ResponseMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
@@ -32,7 +29,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class SocialLoginService extends ResponseMap {
+public class SocialLoginService {
 
     private final InMemoryClientRegistrationRepository inMemoryClientRegistrationRepository;
     private final UserRepository userRepository;
