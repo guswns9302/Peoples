@@ -44,7 +44,6 @@ public class StudyScheduleService {
     @Transactional
     public boolean createSchedule(Map<String, Object> param) {
         Optional<Study> study = studyRepository.findById(Long.parseLong(param.get("studyId").toString()));
-        System.out.println(param);
         if(study.isPresent()){
             StudySchedule studySchedule = StudySchedule.builder()
                     .study(study.get())
@@ -57,6 +56,10 @@ public class StudyScheduleService {
                     .build();
 
             studyScheduleRepository.save(studySchedule);
+
+            System.out.println(studySchedule.getStudyScheduleId());
+            studySchedule.repeatNumberIn(studySchedule.getStudyScheduleId());
+
             if(!(param.get("repeatDay").toString().equals(""))){
                 LocalDate scheduleDate = LocalDate.parse(param.get("studyScheduleDate").toString());
                 LocalDate targetDate = LocalDate.parse(param.get("targetDate").toString()).plusDays(1);
@@ -71,6 +74,7 @@ public class StudyScheduleService {
                                 .checkNumber((int)(Math.random() * (9999 - 1000 + 1)) + 1000)
                                 .studyScheduleStart(param.get("studyScheduleStart").toString())
                                 .studyScheduleEnd(param.get("studyScheduleEnd").toString())
+                                .repeatNumber(studySchedule.getStudyScheduleId())
                                 .build();
                         studyScheduleRepository.save(repeatStudySchedule);
                         tomorrow = tomorrow.plusDays(1);
@@ -87,6 +91,7 @@ public class StudyScheduleService {
                                 .checkNumber((int)(Math.random() * (9999 - 1000 + 1)) + 1000)
                                 .studyScheduleStart(param.get("studyScheduleStart").toString())
                                 .studyScheduleEnd(param.get("studyScheduleEnd").toString())
+                                .repeatNumber(studySchedule.getStudyScheduleId())
                                 .build();
                         studyScheduleRepository.save(repeatStudySchedule);
                         week = week.plusDays(7);
@@ -103,6 +108,7 @@ public class StudyScheduleService {
                                 .checkNumber((int)(Math.random() * (9999 - 1000 + 1)) + 1000)
                                 .studyScheduleStart(param.get("studyScheduleStart").toString())
                                 .studyScheduleEnd(param.get("studyScheduleEnd").toString())
+                                .repeatNumber(studySchedule.getStudyScheduleId())
                                 .build();
                         studyScheduleRepository.save(repeatStudySchedule);
                         twoweek = twoweek.plusDays(7);
@@ -119,6 +125,7 @@ public class StudyScheduleService {
                                 .checkNumber((int)(Math.random() * (9999 - 1000 + 1)) + 1000)
                                 .studyScheduleStart(param.get("studyScheduleStart").toString())
                                 .studyScheduleEnd(param.get("studyScheduleEnd").toString())
+                                .repeatNumber(studySchedule.getStudyScheduleId())
                                 .build();
                         studyScheduleRepository.save(repeatStudySchedule);
                         month = month.plusMonths(1);
@@ -145,10 +152,19 @@ public class StudyScheduleService {
     }
 
     @Transactional
-    public boolean delete(long studyScheduleId) {
-        Optional<StudySchedule> studySchedule = studyScheduleRepository.findById(studyScheduleId);
+    public boolean delete(Map<String,Object> param) {
+        Optional<StudySchedule> studySchedule = studyScheduleRepository.findById(Long.parseLong(param.get("studyScheduleId").toString()));
         if(studySchedule.isPresent()){
-            studyScheduleRepository.delete(studySchedule.get());
+
+            if(Boolean.parseBoolean(param.get("repeatDelete").toString())){
+                List<StudySchedule> byRepeatNumber = studyScheduleRepository.findByRepeatNumber(studySchedule.get().getRepeatNumber());
+                byRepeatNumber.forEach(list->{
+                    studyScheduleRepository.delete(list);
+                });
+            }
+            else{
+                studyScheduleRepository.delete(studySchedule.get());
+            }
             return true;
         }
         else{

@@ -43,6 +43,9 @@ public class StudySchedule {
     @Column(name = "CHECK_NUMBER")
     private int checkNumber;
 
+    @Column(name = "REPEAT_NUMBER")
+    private Long repeatNumber;
+
     @OneToMany(mappedBy = "studySchedule")
     private List<Attendance> attendanceList = new ArrayList<>();
 
@@ -52,5 +55,9 @@ public class StudySchedule {
         this.studyScheduleStart = param.get("studyScheduleStart").toString();
         this.studyScheduleEnd = param.get("studyScheduleEnd").toString();
         this.studySchedulePlace = param.get("studySchedulePlace").toString();
+    }
+
+    public void repeatNumberIn (Long number){
+        this.repeatNumber = number;
     }
 }

@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface StudyScheduleRepository extends JpaRepository<StudySchedule, Long> {
     List<StudySchedule> findByStudyScheduleDate(LocalDate now);
+    List<StudySchedule> findByRepeatNumber(Long number);
 }

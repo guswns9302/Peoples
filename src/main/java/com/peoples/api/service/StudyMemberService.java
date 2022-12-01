@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 public class StudyMemberService {
 
     private final StudyMemberRepository studyMemberRepository;
+    private final AlarmService alarmService;
 
     public List<StudyMemberResponse> getList(long studyId) {
         return studyMemberRepository.findByStudy_StudyId(studyId).stream().map(StudyMemberResponse::from).collect(Collectors.toList());
@@ -60,6 +61,7 @@ public class StudyMemberService {
         Optional<StudyMember> studyMember = studyMemberRepository.findById(Long.parseLong(param.get("studyMemberId").toString()));
         if(studyMember.isPresent()){
             studyMember.get().updateManager(studyMember.get().isUserManager());
+            alarmService.changeManager(studyMember.get());
             return true;
         }
         else{
@@ -80,6 +82,7 @@ public class StudyMemberService {
                     throw new CustomException(ErrorCode.MASTER_DO_NOT_EXPIRE);
                 }
                 else{
+                    alarmService.expire(studyMember.get());
                     studyMemberRepository.delete(studyMember.get());
                     return true;
                 }

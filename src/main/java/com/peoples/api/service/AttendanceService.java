@@ -31,6 +31,7 @@ public class AttendanceService {
     private final StudyRepository studyRepository;
     private final StudyScheduleRepository studyScheduleRepository;
     private final AttendanceRepository attendanceRepository;
+    private final AlarmService alarmService;
 
     @Transactional
     public AttendanceResponse attendSchedule(String userId, Map<String, Object> param) {
@@ -130,6 +131,9 @@ public class AttendanceService {
                                               .fine(response.getFine())
                                               .build();
             attendanceRepository.save(attendance);
+
+            this.checkedExpire(attendance.getUserId(), attendance.getStudySchedule().getStudy());
+
             return response;
         }
         else{
@@ -290,6 +294,7 @@ public class AttendanceService {
         if(isAttend.isPresent()){
             if(isAttend.get().getUserId().equals(param.get("userId").toString())){
                 isAttend.get().updateStatusAndFine(param.get("attendStatus").toString(), Integer.parseInt(param.get("fine").toString()));
+                alarmService.updateAttend(isAttend.get());
                 return true;
             }
             else{
@@ -298,6 +303,41 @@ public class AttendanceService {
         }
         else {
             throw new CustomException(ErrorCode.RESULT_NOT_FOUND);
+        }
+    }
+
+    @Transactional
+    public void checkedExpire(String userId, Study study){
+        Map<String,Object> studyRule = study.getStudyRule();
+
+        // 강퇴 조건 - 결석
+        HashMap out = (HashMap) studyRule.get("out");
+        int absentExpireCnt = Integer.parseInt(out.get("absent").toString());
+        int latenessExpireCnt = Integer.parseInt(out.get("lateness").toString());
+        log.debug("지각 조건 : {}", latenessExpireCnt);
+        log.debug("결석 조건 : {}", absentExpireCnt);
+        if(absentExpireCnt > 0 || latenessExpireCnt > 0){
+            List<Integer> late = new ArrayList<>();
+            List<Integer> absent = new ArrayList<>();
+            study.getStudyScheduleList().forEach(schedule->{
+                schedule.getAttendanceList().forEach(attendance -> {
+                    if(attendance.getUserId().equals(userId)){
+                        if(attendance.getAttendStatus().equals(AttendStatus.LATENESS)){
+                            late.add(1);
+                        }
+                        else if(attendance.getAttendStatus().equals(AttendStatus.ABSENT)){
+                            absent.add(1);
+                        }
+                    }
+                });
+            });
+            int latenessCnt = late.stream().mapToInt(Integer::intValue).sum();
+            int absentCnt = absent.stream().mapToInt(Integer::intValue).sum();
+            log.debug("지각 : {}", latenessCnt);
+            log.debug("결석 : {}", absentCnt);
+            if(latenessCnt >= latenessExpireCnt || absentCnt >= absentExpireCnt){
+                alarmService.expireConfirm(userId,study);
+            }
         }
     }
 }

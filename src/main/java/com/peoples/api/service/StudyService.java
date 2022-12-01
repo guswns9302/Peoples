@@ -35,6 +35,7 @@ public class StudyService {
     private final UserStudyHistoryRepository userStudyHistoryRepository;
     private final StudyNotificationRepository studyNotificationRepository;
     private final StudyScheduleRepository studyScheduleRepository;
+    private final AlarmService alarmService;
 
     private Optional<Study> getStudy(Long studyId){
         Optional<Study> isStudy = studyRepository.findById(studyId);
@@ -355,6 +356,23 @@ public class StudyService {
         Optional<Study> study = studyRepository.findById(studyId);
         if(study.isPresent()){
             study.get().finish(Status.STOP);
+
+            // 현재시간
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+            LocalDateTime current = LocalDateTime.now();
+            LocalDateTime now = LocalDateTime.parse(current.format(formatter), formatter);
+
+            study.get().getStudyScheduleList().forEach(list->{
+                // 스터디 날짜 및 종료 시간 조합
+                LocalDate scheduleDate = list.getStudyScheduleDate();
+                String startDateStr = scheduleDate.toString() + " " + list.getStudyScheduleStart();
+                LocalDateTime scheduleDateTimeEnd = LocalDateTime.parse(startDateStr, formatter);
+
+                if(now.isBefore(scheduleDateTimeEnd)){
+                    studyScheduleRepository.delete(list);
+                }
+            });
+            alarmService.studyEnd(study.get());
             return true;
         }
         else{

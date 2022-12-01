@@ -34,8 +34,8 @@ public class StudyScheduleController {
         return ResponseEntity.ok(studyScheduleService.updateSchedule(param));
     }
 
-    @DeleteMapping("study/schedule/{studyScheduleId}")
-    public ResponseEntity<Boolean> deleteStudySchedule(@PathVariable long studyScheduleId){
-        return ResponseEntity.ok(studyScheduleService.delete(studyScheduleId));
+    @DeleteMapping("study/schedule")
+    public ResponseEntity<Boolean> deleteStudySchedule(@RequestBody Map<String,Object> param){
+        return ResponseEntity.ok(studyScheduleService.delete(param));
     }
 }

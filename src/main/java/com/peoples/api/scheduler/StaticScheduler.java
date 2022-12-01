@@ -1,12 +1,12 @@
 package com.peoples.api.scheduler;
 
 import com.peoples.api.domain.Attendance;
-import com.peoples.api.domain.StudyMember;
 import com.peoples.api.domain.StudySchedule;
 import com.peoples.api.domain.enumeration.AttendStatus;
 import com.peoples.api.repository.AttendanceRepository;
-import com.peoples.api.repository.StudyMemberRepository;
 import com.peoples.api.repository.StudyScheduleRepository;
+import com.peoples.api.service.AlarmService;
+import com.peoples.api.service.AttendanceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -29,6 +29,7 @@ public class StaticScheduler {
 
     private final StudyScheduleRepository studyScheduleRepository;
     private final AttendanceRepository attendanceRepository;
+    private final AttendanceService attendanceService;
 
     @Transactional
     @Scheduled(cron = "0 */1 * * * *")	// 1분마다
@@ -46,15 +47,14 @@ public class StaticScheduler {
             String endDateStr = scheduleDate.toString() + " " + x.getStudyScheduleEnd();
             LocalDateTime scheduleDateTimeEnd = LocalDateTime.parse(endDateStr, formatter);
 
-            log.debug("현재 시간 : {}", targetTime);
-            log.debug("스터디 종료 시간 : {}", scheduleDateTimeEnd);
-
             Map<String,Object> studyRule = x.getStudy().getStudyRule();
             // 결석 시간
             HashMap absent = (HashMap) studyRule.get("absent");
             int absentFine = Integer.parseInt(absent.get("fine").toString());
 
             if(targetTime.isAfter(scheduleDateTimeEnd)){
+                log.debug("현재 시간 : {}", targetTime);
+                log.debug("스터디 종료 시간 : {}", scheduleDateTimeEnd);
                 if(x.getAttendanceList().size() == x.getStudy().getStudyMemberList().size()){
                     log.debug("전원 출석 하였습니다.");
                 }
@@ -80,9 +80,15 @@ public class StaticScheduler {
                                 .fine(absentFine)
                                 .build();
                         attendanceRepository.save(attendance);
+                        attendanceService.checkedExpire(who, x.getStudy());
                     });
                 }
             }
         });
+    }
+
+    @Scheduled(cron = "0 */1 * * * *")	// 1분마다
+    public void sendPushMsg(){
+        log.debug("pushMSG를 보내야 하는데.....");
     }
 }

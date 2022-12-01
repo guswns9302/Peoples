@@ -89,6 +89,9 @@ public class User {
     @OneToMany(mappedBy = "user")
     private List<UserStudyHistory> userStudyHistoryList = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user")
+    private List<Alarm> alarmList = new ArrayList<>();
+
     public void updateRefreshToken(String refreshToken){
         this.refreshToken = refreshToken;
     }

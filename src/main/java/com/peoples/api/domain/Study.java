@@ -83,6 +83,9 @@ public class Study {
     @OneToMany(mappedBy = "study")
     private List<StudyNotification> studyNotificationList = new ArrayList<>();
 
+    @OneToMany(mappedBy = "study")
+    private List<Alarm> alarmList = new ArrayList<>();
+
     public void updateStudyInfo (StudyRequest param){
         this.studyName = param.getStudyName();
         this.studyCategory = param.getStudyCategory();
