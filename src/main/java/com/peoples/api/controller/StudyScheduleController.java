@@ -2,6 +2,7 @@ package com.peoples.api.controller;
 
 import com.peoples.api.domain.StudySchedule;
 import com.peoples.api.domain.security.SecurityUser;
+import com.peoples.api.dto.response.StudyScheduleResponse;
 import com.peoples.api.service.StudyScheduleService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +21,7 @@ public class StudyScheduleController {
     private final StudyScheduleService studyScheduleService;
 
     @GetMapping("/study/schedule")
-    public ResponseEntity<Map<Long, List<StudySchedule>>> findStudySchedule(@AuthenticationPrincipal SecurityUser user){
+    public ResponseEntity<Map<Long,List<StudyScheduleResponse>>> findStudySchedule(@AuthenticationPrincipal SecurityUser user){
         return ResponseEntity.ok(studyScheduleService.findSchedule(user.getUsername()));
     }
 

@@ -75,7 +75,8 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
             String refreshToken = jwtService.extractRefreshToken(request).filter(jwtService::isTokenValid).orElse(null);
             String accessToken = jwtService.extractAccessToken(request).filter(jwtService::isTokenValid).orElse(null);
             log.debug("토큰 검증 필터 실행. request uri : {}", request.getRequestURI());
-
+            log.debug("refreshToken : {}", refreshToken);
+            log.debug("accessToken : {}", accessToken);
             if(accessToken != null && refreshToken != null){
                 log.debug("엑세스 인증");
                 checkAccessTokenAndAuthentication(request, response, filterChain, accessToken);

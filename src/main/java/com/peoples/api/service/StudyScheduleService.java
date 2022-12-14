@@ -3,6 +3,7 @@ package com.peoples.api.service;
 import com.peoples.api.domain.Study;
 import com.peoples.api.domain.StudyMember;
 import com.peoples.api.domain.StudySchedule;
+import com.peoples.api.dto.response.StudyScheduleResponse;
 import com.peoples.api.exception.CustomException;
 import com.peoples.api.exception.ErrorCode;
 import com.peoples.api.repository.StudyRepository;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,15 +26,14 @@ public class StudyScheduleService {
     private final StudyRepository studyRepository;
     private final StudyScheduleRepository studyScheduleRepository;
 
-    public Map<Long, List<StudySchedule>> findSchedule(String userId) {
+    @Transactional(readOnly = true)
+    public Map<Long,List<StudyScheduleResponse>> findSchedule(String userId) {
         List<StudyMember> studyMemberList = userRepository.findByUserId(userId).get().getStudyMemberList();
         if(!studyMemberList.isEmpty()){
-            Map<Long, List<StudySchedule>> joinStudyScheduleList = new HashMap<>();
+            Map<Long,List<StudyScheduleResponse>> joinStudyScheduleList = new HashMap<>();
             studyMemberList.forEach(data->{
-                List<StudySchedule> studyScheduleList = data.getStudy().getStudyScheduleList();
-                if(!studyScheduleList.isEmpty()){
-                    joinStudyScheduleList.put(data.getStudy().getStudyId(), studyScheduleList);
-                }
+                List<StudyScheduleResponse> studyScheduleList = data.getStudy().getStudyScheduleList().stream().map(StudyScheduleResponse::from).collect(Collectors.toList());
+                joinStudyScheduleList.put(data.getStudy().getStudyId(), studyScheduleList);
             });
             return joinStudyScheduleList;
         }
@@ -56,8 +57,6 @@ public class StudyScheduleService {
                     .build();
 
             studyScheduleRepository.save(studySchedule);
-
-            System.out.println(studySchedule.getStudyScheduleId());
             studySchedule.repeatNumberIn(studySchedule.getStudyScheduleId());
 
             if(!(param.get("repeatDay").toString().equals(""))){

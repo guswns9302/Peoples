@@ -19,6 +19,7 @@ public class StudyScheduleResponse {
     private String studyScheduleStart;
     private String studyScheduleEnd;
     private String studySchedulePlace;
+    private String studyName;
 
     public static StudyScheduleResponse from (StudySchedule studySchedule){
         return StudyScheduleResponse.builder()
@@ -28,6 +29,7 @@ public class StudyScheduleResponse {
                 .studyScheduleStart(studySchedule.getStudyScheduleStart())
                 .studyScheduleEnd(studySchedule.getStudyScheduleEnd())
                 .studySchedulePlace(studySchedule.getStudySchedulePlace())
+                .studyName(studySchedule.getStudy().getStudyName())
                 .build();
     }
 }
