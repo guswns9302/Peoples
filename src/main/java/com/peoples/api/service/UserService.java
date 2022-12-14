@@ -6,9 +6,11 @@ import com.peoples.api.domain.User;
 import com.peoples.api.domain.enumeration.Role;
 import com.peoples.api.dto.response.DeleteUserResponse;
 import com.peoples.api.dto.response.StudyResponse;
+import com.peoples.api.dto.response.UserResponse;
 import com.peoples.api.dto.response.UserStudyHistoryResponse;
 import com.peoples.api.exception.CustomException;
 import com.peoples.api.exception.ErrorCode;
+import com.peoples.api.handler.LoginSuccessHandler;
 import com.peoples.api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,8 +20,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -30,11 +34,12 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final EmailService emailService;
+    private final JwtService jwtService;
 
     private static final String SAVE_IMG_DIRECTORY = System.getProperty("user.home");
 
     @Transactional
-    public Boolean createUser(Map<String, Object> param, MultipartFile file){
+    public UserResponse createUser(Map<String, Object> param, MultipartFile file, HttpServletResponse response) throws IOException {
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         // 이메일 중복 검증
         if(this.verificationEmail(param)){
@@ -79,7 +84,13 @@ public class UserService {
                     }
 
                     // 회원정보가 저장 ok
-                    return true;
+                    //return true;
+                    String accessToken = jwtService.createAccessToken(save.getUserId());
+                    String refreshToken = jwtService.createRefreshToken();
+                    jwtService.sendAccessAndRefreshToken(response, accessToken, refreshToken);
+
+                    save.updateLastLogin(LocalDateTime.now());
+                    return UserResponse.from(save);
                 }
                 else{
                     // 회원정보가 저장 실패
@@ -294,4 +305,9 @@ public class UserService {
         User user = userRepository.findByUserId(userId).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         user.changePushDay(user.isPushDayAgo());
     }
+
+//    @Transactional(readOnly = true)
+//    public boolean checkEmailAuth(User user) {
+//        return
+//    }
 }

@@ -2,6 +2,7 @@ package com.peoples.api.controller;
 
 import com.peoples.api.domain.security.SecurityUser;
 import com.peoples.api.dto.response.DeleteUserResponse;
+import com.peoples.api.dto.response.UserResponse;
 import com.peoples.api.dto.response.UserStudyHistoryResponse;
 import com.peoples.api.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -39,10 +41,25 @@ public class UserController {
     }
 
     // 회원가입
+//    @PostMapping(value = "/signup" , consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
+//    public ResponseEntity<Boolean> createUser(@RequestPart Map<String, Object> param, @RequestPart MultipartFile file){
+//        log.debug("param : {}", param);
+//        log.debug("file : {}", file);
+//        return ResponseEntity.ok(userService.createUser(param, file));
+//    }
     @PostMapping(value = "/signup" , consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<Boolean> createUser(@RequestPart Map<String, Object> param, @RequestPart MultipartFile file){
-        return ResponseEntity.ok(userService.createUser(param, file));
+    public ResponseEntity<UserResponse> createUser(@RequestPart Map<String, Object> param, @RequestPart MultipartFile file, HttpServletResponse response) throws IOException {
+        log.debug("param : {}", param);
+        log.debug("file : {}", file);
+        return ResponseEntity.ok(userService.createUser(param, file, response));
     }
+
+    // 이메일 인증 여부 확인
+    @GetMapping(value = "/signup/email/auth")
+    public ResponseEntity<Boolean> checkEmailAuth(@AuthenticationPrincipal SecurityUser user){
+        return ResponseEntity.ok(user.getUser().isEmailAuthentication());
+    }
+
 
     // 회원가입 이메일 인증 메일 재발송
     @GetMapping("/user/email/auth")
