@@ -21,34 +21,26 @@ import java.util.Map;
 public class SocialLoginController {
     private final SocialLoginService socialLoginService;
 
-    private ResponseEntity<Map<String,Object>> oauth2Response(SocialLoginResponse result){
+    private ResponseEntity<UserResponse> oauth2Response(SocialLoginResponse result){
         HttpHeaders headers = new HttpHeaders();
         headers.add("AccessToken", result.getAccessToken());
         headers.add("RefreshToken", result.getRefreshToken());
-
-        Map<String,Object> responseMap = new HashMap<>();
-        responseMap.put("timestamp", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        responseMap.put("message", "Social login success. Issued AccessToken , RefreshToken");
-        responseMap.put("firstLogin", result.isFirstLogin());
-        responseMap.put("result", Map.of("user", UserResponse.from(result.getUser())));
-        return ResponseEntity.ok().headers(headers).body(responseMap);
+        return ResponseEntity.ok().headers(headers).body(UserResponse.of(result.getUser()));
     }
 
     @GetMapping("/login/oauth/{provider}")
-    public ResponseEntity<Map<String,Object>> restApiOauth2Login(@PathVariable String provider ,@RequestParam String code){
+    public ResponseEntity<UserResponse> restApiOauth2Login(@PathVariable String provider ,@RequestParam String code){
         log.debug("provider : {}", provider);
         log.debug("code : {}", code);
         SocialLoginResponse result = socialLoginService.restApiLogin(provider, code);
-
         return this.oauth2Response(result);
     }
 
     @GetMapping("/login/oauth2/{provider}")
-    public ResponseEntity<Map<String,Object>> oauth2Login(@PathVariable String provider, @RequestParam String token){
+    public ResponseEntity<UserResponse> oauth2Login(@PathVariable String provider, @RequestParam String token){
         log.debug("provider : {}", provider);
         log.debug("token : {}", token);
         SocialLoginResponse result = socialLoginService.oauth2Login(provider, token);
-
         return this.oauth2Response(result);
     }
 

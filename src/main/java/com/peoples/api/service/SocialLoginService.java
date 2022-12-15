@@ -11,6 +11,7 @@ import com.peoples.api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
@@ -40,6 +41,7 @@ public class SocialLoginService {
     public SocialLoginResponse restApiLogin(String provider_name, String code) {
         ClientRegistration provider = inMemoryClientRegistrationRepository.findByRegistrationId(provider_name);
         Map<String,Object> tokenResponse = this.getToken(code, provider);
+        log.debug("token : {}", tokenResponse);
         Map<String, String> oauth2user = this.getUserInfo_restApi(provider_name, tokenResponse, provider);
         return this.existUser(provider_name, oauth2user);
     }
@@ -134,6 +136,7 @@ public class SocialLoginService {
         String accessToken = jwtService.createAccessToken(user.getUserId());
         String refreshToken = jwtService.createRefreshToken();
         user.updateRefreshToken(refreshToken);
+
         return SocialLoginResponse.from(user, accessToken, refreshToken, firstLogin);
     }
 

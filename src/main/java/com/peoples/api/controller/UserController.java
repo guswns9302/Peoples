@@ -40,13 +40,6 @@ public class UserController {
         return ResponseEntity.ok(userService.verificationEmail(param));
     }
 
-    // 회원가입
-//    @PostMapping(value = "/signup" , consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
-//    public ResponseEntity<Boolean> createUser(@RequestPart Map<String, Object> param, @RequestPart MultipartFile file){
-//        log.debug("param : {}", param);
-//        log.debug("file : {}", file);
-//        return ResponseEntity.ok(userService.createUser(param, file));
-//    }
     @PostMapping(value = "/signup" , consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<UserResponse> createUser(@RequestPart Map<String, Object> param, @RequestPart MultipartFile file, HttpServletResponse response) throws IOException {
         log.debug("param : {}", param);

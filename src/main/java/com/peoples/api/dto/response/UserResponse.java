@@ -35,4 +35,21 @@ public class UserResponse {
                     .build();
         return userResponse;
     }
+
+    public static UserResponse of(User user){
+        String fileName = "fileName";
+        UserResponse userResponse = UserResponse.builder()
+                .userId(user.getUserId())
+                .nickname(user.getNickname())
+                .img(ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/v1/downloadIMG").queryParam(fileName, user.getImg()).toUriString())
+                .emailAuthentication(user.isEmailAuthentication())
+                .userStats(user.isUserState())
+                .userBlock(user.isUserBlock())
+                .userPause(user.isUserPause())
+                .pushStart(user.isPushStart())
+                .pushImminent(user.isPushImminent())
+                .pushDayAgo(user.isPushDayAgo())
+                .build();
+        return userResponse;
+    }
 }
