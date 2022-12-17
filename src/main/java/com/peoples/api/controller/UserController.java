@@ -49,8 +49,8 @@ public class UserController {
 
     // 이메일 인증 여부 확인
     @GetMapping(value = "/signup/email/auth")
-    public ResponseEntity<Boolean> checkEmailAuth(@AuthenticationPrincipal SecurityUser user){
-        return ResponseEntity.ok(user.getUser().isEmailAuthentication());
+    public ResponseEntity<Boolean> checkEmailAuth(@RequestParam String userId){
+        return ResponseEntity.ok(userService.checkEmail(userId));
     }
 
 

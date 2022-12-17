@@ -306,8 +306,13 @@ public class UserService {
         user.changePushDay(user.isPushDayAgo());
     }
 
-//    @Transactional(readOnly = true)
-//    public boolean checkEmailAuth(User user) {
-//        return
-//    }
+    @Transactional(readOnly = true)
+    public Boolean checkEmail(String userId) {
+        Optional<User> user = userRepository.findByUserId(userId);
+        if (user.isPresent()) {
+            return user.get().isEmailAuthentication();
+        } else {
+            throw new CustomException(ErrorCode.USER_NOT_FOUND);
+        }
+    }
 }
