@@ -13,6 +13,7 @@ import java.util.*;
 @Getter
 @Entity
 @Builder
+@ToString
 @AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
