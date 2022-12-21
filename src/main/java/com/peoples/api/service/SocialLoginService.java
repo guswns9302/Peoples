@@ -135,6 +135,8 @@ public class SocialLoginService {
     private SocialLoginResponse userProvideJWT(User user, boolean firstLogin){
         String accessToken = jwtService.createAccessToken(user.getUserId());
         String refreshToken = jwtService.createRefreshToken();
+        log.debug("a.t : {}",accessToken);
+        log.debug("r.t : {}",refreshToken);
         user.updateRefreshToken(refreshToken);
 
         return SocialLoginResponse.from(user, accessToken, refreshToken, firstLogin);
@@ -153,6 +155,7 @@ public class SocialLoginService {
             User newUser = User.builder()
                     .userId(oauth2user.get("email"))
                     .nickname(oauth2user.get("nickname"))
+                    .img("peoples_logo.png")
                     .role(Role.ROLE_USER)
                     .snsKakao(false)
                     .snsNaver(false)
