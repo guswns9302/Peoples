@@ -8,6 +8,7 @@ import lombok.ToString;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -15,7 +16,7 @@ import java.util.Set;
 
 @Getter
 @ToString
-@EqualsAndHashCode
+@Builder
 public class SecurityUser implements UserDetails {
 
     @EqualsAndHashCode.Exclude
@@ -59,12 +60,12 @@ public class SecurityUser implements UserDetails {
         return true;
     }
 
-    @Builder
     public SecurityUser(User user) {
         this.user = user;
     }
 
     public static SecurityUser of(User user) {
+        System.out.println("thdhkt!!");
         return SecurityUser.builder().user(user).build();
     }
 }

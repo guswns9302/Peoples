@@ -35,6 +35,7 @@ public class StudyMemberService {
     private final StudyMemberRepository studyMemberRepository;
     private final AlarmService alarmService;
 
+    @Transactional
     public List<StudyMemberResponse> getList(long studyId) {
         return studyMemberRepository.findByStudy_StudyId(studyId).stream().map(StudyMemberResponse::from).collect(Collectors.toList());
     }

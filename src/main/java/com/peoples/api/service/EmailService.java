@@ -82,7 +82,7 @@ public class EmailService {
 
         Context context = new Context();
         context.setVariable("tempPW", temp_pw);
-        String html = templateEngine.process("/tempPWForm", context);
+        String html = templateEngine.process("tempPWForm", context);
 
         try {
             MimeMessage message = mailSender.createMimeMessage();

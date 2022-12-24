@@ -1,12 +1,15 @@
 package com.peoples.api.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StreamUtils;
 
 import javax.servlet.ServletException;
@@ -38,21 +41,19 @@ public class JsonLoginAuthenticationFilter extends AbstractAuthenticationProcess
     }
 
     @Override
-    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException, ServletException {
+    public Authentication attemptAuthentication(@NotNull HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException {
         System.out.println("JsonLoginAuthenticationFilter 실행");
+
+        System.out.println(request.getContentType());
         if(request.getContentType() == null || !request.getContentType().equals(CONTENT_TYPE)  ) {
             throw new AuthenticationServiceException("Authentication Content-Type not supported: " + request.getContentType());
         }
-
         String messageBody = StreamUtils.copyToString(request.getInputStream(), StandardCharsets.UTF_8);
-
         Map<String, String> userIdPasswordMap = objectMapper.readValue(messageBody, Map.class);
-
         String userId = userIdPasswordMap.get(USERID_KEY);
         String password = userIdPasswordMap.get(PASSWORD_KEY);
         UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(userId, password);//principal 과 credentials 전달
-
-        return this.getAuthenticationManager().authenticate(authRequest);
+        Authentication authenticate = this.getAuthenticationManager().authenticate(authRequest);
+        return authenticate;
     }
-
 }

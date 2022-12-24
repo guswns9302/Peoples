@@ -95,18 +95,13 @@ public class StudyService {
 
     public List<StudyResponse> findAll(String userId) {
         List<StudyMember> studyByUserId = userRepository.findByUserId(userId).get().getStudyMemberList();
-
+        List<StudyResponse> joinStudyList = new ArrayList<>();
         if(!studyByUserId.isEmpty()){
-            List<StudyResponse> joinStudyList = new ArrayList<>();
             studyByUserId.forEach(data->{
                 joinStudyList.add(StudyResponse.from(data.getStudy()));
             });
-
-            return joinStudyList;
         }
-        else{
-            return null;
-        }
+        return joinStudyList;
     }
 
     public Map<String,Object> findStudy(Long studyId, SecurityUser user) {

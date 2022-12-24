@@ -25,6 +25,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 
 @RequiredArgsConstructor
@@ -62,7 +63,14 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .httpBasic().disable()
-            .formLogin().disable()
+//            .formLogin().disable()
+                .formLogin()
+                .loginProcessingUrl("/api/v1/signin")
+                .usernameParameter("username")
+                .passwordParameter("password")
+                .successHandler(loginSuccessHandler())
+                .failureHandler(loginFailureHandler())
+                .and()
             .csrf().disable()
             .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)// jwt 인증으로 세션 생성 안함.
@@ -72,8 +80,9 @@ public class SecurityConfig {
                 .antMatchers("/api/v1/**").hasRole("USER")
                 .anyRequest().authenticated();
 
-        http.addFilterAfter(jsonLoginAuthenticationFilter(), LogoutFilter.class);
-        http.addFilterBefore(jwtAuthenticationProcessingFilter(), JsonLoginAuthenticationFilter.class);
+        //http.addFilterAfter(jsonLoginAuthenticationFilter(), LogoutFilter.class);
+        //http.addFilterBefore(jwtAuthenticationProcessingFilter(), JsonLoginAuthenticationFilter.class);
+        http.addFilterBefore(jwtAuthenticationProcessingFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
@@ -95,14 +104,14 @@ public class SecurityConfig {
         return new LoginFailureHandler();
     }
 
-    @Bean
-    public JsonLoginAuthenticationFilter jsonLoginAuthenticationFilter(){
-        JsonLoginAuthenticationFilter jsonLoginAuthenticationFilter = new JsonLoginAuthenticationFilter(objectMapper);
-        jsonLoginAuthenticationFilter.setAuthenticationManager(authenticationManager());
-        jsonLoginAuthenticationFilter.setAuthenticationSuccessHandler(loginSuccessHandler());
-        jsonLoginAuthenticationFilter.setAuthenticationFailureHandler(loginFailureHandler());
-        return jsonLoginAuthenticationFilter;
-    }
+//    @Bean
+//    public JsonLoginAuthenticationFilter jsonLoginAuthenticationFilter(){
+//        JsonLoginAuthenticationFilter jsonLoginAuthenticationFilter = new JsonLoginAuthenticationFilter(objectMapper);
+//        jsonLoginAuthenticationFilter.setAuthenticationManager(authenticationManager());
+//        jsonLoginAuthenticationFilter.setAuthenticationSuccessHandler(loginSuccessHandler());
+//        jsonLoginAuthenticationFilter.setAuthenticationFailureHandler(loginFailureHandler());
+//        return jsonLoginAuthenticationFilter;
+//    }
 
     @Bean
     public JwtAuthenticationProcessingFilter jwtAuthenticationProcessingFilter(){

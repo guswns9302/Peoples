@@ -171,7 +171,8 @@ public class SocialLoginService {
         }
     }
 
-    private Map<String, String> setOauth2User(String provider_name, String socialUser) {
+    @Transactional
+    public Map<String, String> setOauth2User(String provider_name, String socialUser) {
         Map<String, String> oauth2User = new HashMap<>();
         String email = "";
         String nickname = "";
