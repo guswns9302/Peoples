@@ -66,7 +66,7 @@ public class SecurityConfig {
 //            .formLogin().disable()
                 .formLogin()
                 .loginProcessingUrl("/api/v1/signin")
-                .usernameParameter("username")
+                .usernameParameter("userId")
                 .passwordParameter("password")
                 .successHandler(loginSuccessHandler())
                 .failureHandler(loginFailureHandler())
