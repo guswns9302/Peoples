@@ -25,8 +25,8 @@ public class StudyMemberController {
     private final StudyMemberService studyMemberService;
 
     @GetMapping("/studyMember/{studyId}")
-    public ResponseEntity<List<StudyMemberResponse>> getMemberList(@PathVariable long studyId){
-        return ResponseEntity.ok(studyMemberService.getList(studyId));
+    public ResponseEntity<Map<String,Object>> getMemberList(@PathVariable long studyId, @AuthenticationPrincipal SecurityUser user){
+        return ResponseEntity.ok(studyMemberService.getList(studyId, user.getUsername()));
     }
 
     @PutMapping("/studyMember/memberRole")
@@ -42,6 +42,11 @@ public class StudyMemberController {
     @DeleteMapping("/studyMember/{studyMemberId}")
     public ResponseEntity<Boolean> expire(@PathVariable long studyMemberId, @AuthenticationPrincipal SecurityUser user){
         return ResponseEntity.ok(studyMemberService.expire(studyMemberId, user.getUser()));
+    }
+
+    @DeleteMapping("/studyMember/leave/{studyId}")
+    public ResponseEntity<Boolean> leave(@PathVariable long studyId, @AuthenticationPrincipal SecurityUser user){
+        return ResponseEntity.ok(studyMemberService.leave(studyId, user.getUsername()));
     }
 
     @PutMapping("/studyMember/master")

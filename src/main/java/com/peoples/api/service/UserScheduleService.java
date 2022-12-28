@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -28,18 +29,15 @@ public class UserScheduleService {
     private final UserRepository userRepository;
     private final UserScheduleRepository userScheduleRepository;
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<UserScheduleResponse> findUserSchedule(String userId) {
         Optional<User> byUserId = userRepository.findByUserId(userId);
 
-        List<UserScheduleResponse> userScheduleList = byUserId.get().getUserScheduleList().stream().map(UserScheduleResponse::from).collect(Collectors.toList());
-
-        if(userScheduleList.isEmpty()){
-            return null;
+        List<UserScheduleResponse> userScheduleList = new ArrayList<>();
+        if(!byUserId.get().getUserScheduleList().isEmpty()){
+            userScheduleList = byUserId.get().getUserScheduleList().stream().map(UserScheduleResponse::from).collect(Collectors.toList());
         }
-        else{
-            return userScheduleList;
-        }
+        return userScheduleList;
     }
 
     @Transactional

@@ -14,6 +14,7 @@ public class StudyResponse {
     private String studyName;
     private StudyCategory studyCategory;
     private Map<String,Object> studyRule;
+    private String studyFlow;
     private boolean studyOn;
     private boolean studyOff;
     private String studyInfo;
@@ -27,6 +28,7 @@ public class StudyResponse {
                 .studyName(study.getStudyName())
                 .studyCategory(study.getStudyCategory())
                 .studyRule(study.getStudyRule())
+                .studyFlow(study.getStudyFlow())
                 .studyOn(study.isStudyOn())
                 .studyOff(study.isStudyOff())
                 .studyInfo(study.getStudyInfo())

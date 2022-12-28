@@ -32,6 +32,9 @@ public enum ErrorCode {
     MASTER_DO_NOT_EXPIRE(HttpStatus.BAD_REQUEST, "스터디장은 추방할 수 없습니다."),
 
     /* 400 BAD_REQUEST : 잘못된 요청 */
+    MASTER_DO_NOT_LEAVE(HttpStatus.BAD_REQUEST, "스터디장은 탈퇴할 수 없습니다."),
+
+    /* 400 BAD_REQUEST : 잘못된 요청 */
     MASTER_DO_NOT_CHANGE(HttpStatus.BAD_REQUEST, "스터디장은 변경할 수 없습니다.."),
 
     /* 400 BAD_REQUEST : 잘못된 요청 */

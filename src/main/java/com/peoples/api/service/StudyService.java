@@ -113,13 +113,19 @@ public class StudyService {
             study.get().getStudyMemberList().forEach(x->{
                 if(x.getUserRole().equals("스터디장")){
                     if(x.getUser().getUserId().equals(user.getUser().getUserId())){
-                        result.put("master", user.getUser().getUserId());
+                        result.put("master", true);
+                    }
+                    else{
+                        result.put("master", false);
                     }
                 }
 
                 if(x.isUserManager()){
                     if(x.getUser().getUserId().equals(user.getUser().getUserId())){
                         result.put("manager", true);
+                    }
+                    else{
+                        result.put("manager", false);
                     }
                 }
             });
@@ -372,6 +378,21 @@ public class StudyService {
         }
         else{
             throw new CustomException(ErrorCode.STUDY_NOT_FOUND);
+        }
+    }
+
+    @Transactional
+    public List<StudyNotiAllResponse> updatePinCompulsion(Long notificationId) {
+        Optional<StudyNotification> findNoti = studyNotificationRepository.findById(notificationId);
+        if(findNoti.isPresent()){
+            findNoti.get().getStudy().getStudyNotificationList().forEach(notiList->{
+                notiList.updatePin(false);
+            });
+            findNoti.get().updatePin(true);
+            return this.findStudyNoti(findNoti.get().getStudy().getStudyId());
+        }
+        else{
+            throw new CustomException(ErrorCode.RESULT_NOT_FOUND);
         }
     }
 }

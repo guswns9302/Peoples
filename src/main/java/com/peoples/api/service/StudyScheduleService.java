@@ -29,17 +29,14 @@ public class StudyScheduleService {
     @Transactional(readOnly = true)
     public Map<Long,List<StudyScheduleResponse>> findSchedule(String userId) {
         List<StudyMember> studyMemberList = userRepository.findByUserId(userId).get().getStudyMemberList();
+        Map<Long,List<StudyScheduleResponse>> joinStudyScheduleList = new HashMap<>();
         if(!studyMemberList.isEmpty()){
-            Map<Long,List<StudyScheduleResponse>> joinStudyScheduleList = new HashMap<>();
             studyMemberList.forEach(data->{
                 List<StudyScheduleResponse> studyScheduleList = data.getStudy().getStudyScheduleList().stream().map(StudyScheduleResponse::from).collect(Collectors.toList());
                 joinStudyScheduleList.put(data.getStudy().getStudyId(), studyScheduleList);
             });
-            return joinStudyScheduleList;
         }
-        else{
-            return null;
-        }
+        return joinStudyScheduleList;
     }
 
     @Transactional

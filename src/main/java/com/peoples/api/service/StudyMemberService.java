@@ -1,6 +1,7 @@
 package com.peoples.api.service;
 
 import com.peoples.api.domain.EmailAuthToken;
+import com.peoples.api.domain.Study;
 import com.peoples.api.domain.StudyMember;
 import com.peoples.api.domain.User;
 import com.peoples.api.domain.enumeration.Role;
@@ -32,12 +33,46 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class StudyMemberService {
 
+    private final StudyRepository studyRepository;
     private final StudyMemberRepository studyMemberRepository;
     private final AlarmService alarmService;
 
     @Transactional
-    public List<StudyMemberResponse> getList(long studyId) {
-        return studyMemberRepository.findByStudy_StudyId(studyId).stream().map(StudyMemberResponse::from).collect(Collectors.toList());
+    public Map<String, Object> getList(long studyId, String userId) {
+        Optional<Study> isStudy = studyRepository.findById(studyId);
+        if(isStudy.isEmpty()){
+            throw new CustomException(ErrorCode.STUDY_NOT_FOUND);
+        }
+        Map<String,Object> result = new HashMap<>();
+
+        isStudy.get().getStudyMemberList().forEach(x->{
+            if(x.getUserRole().equals("스터디장")){
+                if(x.getUser().getUserId().equals(userId)){
+                    result.put("master", true);
+                }
+                else{
+                    result.put("master", false);
+                }
+            }
+
+            if(x.isUserManager()){
+                if(x.getUser().getUserId().equals(userId)){
+                    result.put("manager", true);
+                }
+                else{
+                    result.put("manager", false);
+                }
+            }
+        });
+
+        List<StudyMemberResponse> studyMemberResponsesList = new ArrayList<>();
+        studyMemberRepository.findByStudy_StudyId(studyId).forEach(list->{
+            studyMemberResponsesList.add(StudyMemberResponse.from(list));
+        });
+
+        result.put("memberList", studyMemberResponsesList);
+        return result;
+        //return studyMemberRepository.findByStudy_StudyId(studyId).stream().map(StudyMemberResponse::from).collect(Collectors.toList());
     }
 
     @Transactional
@@ -110,6 +145,23 @@ public class StudyMemberService {
         }
         else{
             throw new CustomException(ErrorCode.RESULT_NOT_FOUND);
+        }
+    }
+
+    @Transactional
+    public boolean leave(long studyId, String userId) {
+        Optional<StudyMember> studyMember = studyMemberRepository.findByUser_UserIdAndStudy_StudyId(userId, studyId);
+        if(studyMember.isPresent()){
+            if(studyMember.get().getUserRole().equals("스터디장")){
+                throw new CustomException(ErrorCode.MASTER_DO_NOT_LEAVE);
+            }
+            else{
+                studyMemberRepository.delete(studyMember.get());
+                return true;
+            }
+        }
+        else{
+            throw new CustomException(ErrorCode.NOT_STUDY_MEMBER);
         }
     }
 }

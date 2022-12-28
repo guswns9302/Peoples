@@ -73,6 +73,11 @@ public class StudyController {
         return ResponseEntity.ok(studyService.updatePin(param));
     }
 
+    @PutMapping("/noti/pin/compulsion/{notificationId}")
+    public ResponseEntity<List<StudyNotiAllResponse>> updatePinCompulsion(@PathVariable Long notificationId){
+        return ResponseEntity.ok(studyService.updatePinCompulsion(notificationId));
+    }
+
     @DeleteMapping("/noti/{notificationId}")
     public ResponseEntity<List<StudyNotiAllResponse>> deleteNoti(@PathVariable Long notificationId){
         return ResponseEntity.ok(studyService.deleteStudyNoti(notificationId));

@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.ToString;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Builder
 @Getter
@@ -15,19 +17,28 @@ import java.time.LocalDate;
 public class StudyScheduleResponse {
     private Long studyScheduleId;
     private String studyScheduleName;
-    private LocalDate studyScheduleDate;
-    private String studyScheduleStart;
-    private String studyScheduleEnd;
+    private LocalDateTime studyScheduleStartDateTime;
+    private LocalDateTime studyScheduleEndDateTime;
     private String studySchedulePlace;
     private String studyName;
 
     public static StudyScheduleResponse from (StudySchedule studySchedule){
+        LocalDateTime startDateTime =
+                LocalDateTime.parse(
+                        studySchedule.getStudyScheduleDate() + " " + studySchedule.getStudyScheduleStart() + ":00",
+                        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                );
+
+        LocalDateTime endDateTime =
+                LocalDateTime.parse(
+                        studySchedule.getStudyScheduleDate() + " " + studySchedule.getStudyScheduleEnd() + ":00",
+                        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                );
         return StudyScheduleResponse.builder()
                 .studyScheduleId(studySchedule.getStudyScheduleId())
                 .studyScheduleName(studySchedule.getStudyScheduleName())
-                .studyScheduleDate(studySchedule.getStudyScheduleDate())
-                .studyScheduleStart(studySchedule.getStudyScheduleStart())
-                .studyScheduleEnd(studySchedule.getStudyScheduleEnd())
+                .studyScheduleStartDateTime(startDateTime)
+                .studyScheduleEndDateTime(endDateTime)
                 .studySchedulePlace(studySchedule.getStudySchedulePlace())
                 .studyName(studySchedule.getStudy().getStudyName())
                 .build();
