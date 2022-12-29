@@ -46,7 +46,6 @@ public class UserService {
             // 비밀번호 - 비밀번호 확인 체크
             if(param.get("password").toString().equals(param.get("password_check").toString())){
                 String imgName = "peoples_logo.png";
-                log.debug("file : {}", file.getOriginalFilename());
 
                 User newUser = User.builder()
                         .userId(param.get("userId").toString())
@@ -70,7 +69,7 @@ public class UserService {
                     // 이메일 인증 메일 발송
                     emailService.createEmailAuthToken(save.getUserId(), save.getNickname());
 
-                    if(!file.getOriginalFilename().equals("")){
+                    if(!file.isEmpty()){
                         UUID uuid = UUID.randomUUID();
                         imgName = uuid + "_" + file.getOriginalFilename();
                         File saveFile = new File(SAVE_IMG_DIRECTORY + "/profile/" + imgName);
@@ -236,7 +235,7 @@ public class UserService {
                 log.debug("nickname : {}", param.get("nickname").toString());
                 user.get().updateNickname(param.get("nickname").toString());
             }
-            if(!file.getOriginalFilename().equals("")){
+            if(!file.isEmpty()){
                 log.debug("file : {}", file.getOriginalFilename());
                 String oldImg = user.get().getImg();
                 File deleteFile = new File(oldImg);
