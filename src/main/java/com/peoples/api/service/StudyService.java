@@ -98,10 +98,25 @@ public class StudyService {
         List<StudyResponse> joinStudyList = new ArrayList<>();
         if(!studyByUserId.isEmpty()){
             studyByUserId.forEach(data->{
-                joinStudyList.add(StudyResponse.from(data.getStudy()));
+                if(data.getStudy().getStatus().equals(Status.RUNNING)){
+                    joinStudyList.add(StudyResponse.from(data.getStudy()));
+                }
             });
         }
         return joinStudyList;
+    }
+
+    public List<StudyResponse> findFinishStudyList(String userId) {
+        List<StudyMember> studyByUserId = userRepository.findByUserId(userId).get().getStudyMemberList();
+        List<StudyResponse> finishStudyList = new ArrayList<>();
+        if(!studyByUserId.isEmpty()){
+            studyByUserId.forEach(data->{
+                if(data.getStudy().getStatus().equals(Status.STOP)){
+                    finishStudyList.add(StudyResponse.from(data.getStudy()));
+                }
+            });
+        }
+        return finishStudyList;
     }
 
     public Map<String,Object> findStudy(Long studyId, SecurityUser user) {
@@ -114,6 +129,7 @@ public class StudyService {
                 if(x.getUserRole().equals("스터디장")){
                     if(x.getUser().getUserId().equals(user.getUser().getUserId())){
                         result.put("master", true);
+                        result.put("masterNickName", user.getUser().getNickname());
                     }
                     else{
                         result.put("master", false);
@@ -130,7 +146,7 @@ public class StudyService {
                 }
             });
 
-            Optional<StudyNotification> existNoti = studyNotificationRepository.findByPin(true);
+            Optional<StudyNotification> existNoti = studyNotificationRepository.findByPinAndStudy_StudyId(true,studyId);
             if(existNoti.isEmpty()){
                 result.put("notification", null);
             }

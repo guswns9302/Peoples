@@ -47,6 +47,12 @@ public class StudyController {
         return ResponseEntity.ok(studyService.findStudy(studyId, user));
     }
 
+    // 종료된 모든 스터디
+    @GetMapping("/study/finish")
+    public ResponseEntity<List<StudyResponse>> finishStduyList(@AuthenticationPrincipal SecurityUser user){
+        return ResponseEntity.ok(studyService.findFinishStudyList(user.getUsername()));
+    }
+
     // 내가 참여하고 있는 모든 스터디
     @GetMapping("/study")
     public ResponseEntity<List<StudyResponse>> findAllStudy(@AuthenticationPrincipal SecurityUser user){
