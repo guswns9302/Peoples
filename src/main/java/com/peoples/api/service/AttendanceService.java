@@ -32,6 +32,7 @@ public class AttendanceService {
     private final StudyScheduleRepository studyScheduleRepository;
     private final AttendanceRepository attendanceRepository;
     private final AlarmService alarmService;
+    private final UserService userservice;
 
     @Transactional
     public AttendanceResponse attendSchedule(String userId, Map<String, Object> param) {
@@ -82,7 +83,7 @@ public class AttendanceService {
 
                     if(latenessTime > 0 && absentTime > 0){
                         // 규칙이 있을 때
-                        if(now.isBefore(scheduleDateTimeStart.plusMinutes(latenessTime)) && now.isEqual(scheduleDateTimeStart.plusMinutes(latenessTime))){
+                        if(now.isBefore(scheduleDateTimeStart.plusMinutes(latenessTime)) || now.isEqual(scheduleDateTimeStart.plusMinutes(latenessTime))){
                             // 지각 시간 전 출석
                             log.debug("지각 시간 전 출석");
                             response.setFine(0);
@@ -186,7 +187,7 @@ public class AttendanceService {
                     x.getAttendanceList().forEach(y->{
                         if(y.getUserId().equals(userId)){
                             detail.put("fine", y.getFine());
-                            detail.put("attendStatus", y.getAttendStatus());
+                            detail.put("attendance", y.getAttendStatus());
                             totalFine.add(y.getFine());
                             if(y.getAttendStatus().equals(AttendStatus.ATTENDANCE)){
                                 totalAttendance.add(1);
@@ -215,7 +216,7 @@ public class AttendanceService {
                         x.getAttendanceList().forEach(y->{
                             if(y.getUserId().equals(userId)){
                                 detail.put("fine", y.getFine());
-                                detail.put("attendStatus", y.getAttendStatus());
+                                detail.put("attendance", y.getAttendStatus());
                                 totalFine.add(y.getFine());
                                 if(y.getAttendStatus().equals(AttendStatus.ATTENDANCE)){
                                     totalAttendance.add(1);
@@ -269,9 +270,12 @@ public class AttendanceService {
                 if(searchDate.isEqual(x.getStudyScheduleDate())){
                     List<Map<String,Object>> userAttendList = new ArrayList<>();
                     x.getAttendanceList().forEach(y->{
+                        Map<String, Object> findUser = userservice.findUser(y.getUserId());
                         userAttendList.add(
                                 Map.of(
                                         "userId", y.getUserId(),
+                                        "nickName", findUser.get("nickname"),
+                                        "img", findUser.get("img"),
                                         "attendance", y.getAttendStatus(),
                                         "fine", y.getFine(),
                                         "attendanceId", y.getAttendanceId()
@@ -319,6 +323,7 @@ public class AttendanceService {
         if(absentExpireCnt > 0 || latenessExpireCnt > 0){
             List<Integer> late = new ArrayList<>();
             List<Integer> absent = new ArrayList<>();
+
             study.getStudyScheduleList().forEach(schedule->{
                 schedule.getAttendanceList().forEach(attendance -> {
                     if(attendance.getUserId().equals(userId)){

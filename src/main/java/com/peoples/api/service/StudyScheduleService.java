@@ -3,6 +3,7 @@ package com.peoples.api.service;
 import com.peoples.api.domain.Study;
 import com.peoples.api.domain.StudyMember;
 import com.peoples.api.domain.StudySchedule;
+import com.peoples.api.dto.response.AttendanceResponse;
 import com.peoples.api.dto.response.StudyScheduleResponse;
 import com.peoples.api.exception.CustomException;
 import com.peoples.api.exception.ErrorCode;
@@ -162,6 +163,26 @@ public class StudyScheduleService {
                 studyScheduleRepository.delete(studySchedule.get());
             }
             return true;
+        }
+        else{
+            throw new CustomException(ErrorCode.RESULT_NOT_FOUND);
+        }
+    }
+
+    @Transactional
+    public AttendanceResponse getAttendByStudyScheduleId(Long studyScheduleId, String userId) {
+        Optional<StudySchedule> studySchedule = studyScheduleRepository.findById(studyScheduleId);
+        AttendanceResponse attendanceResponse = new AttendanceResponse();
+        if(studySchedule.isPresent()){
+            studySchedule.get().getAttendanceList().forEach(attend->{
+                if(attend.getUserId().equals(userId)){
+                    attendanceResponse.setUserId(attend.getUserId());
+                    attendanceResponse.setAttendStatus(attend.getAttendStatus());
+                    attendanceResponse.setReason(attend.getReason());
+                    attendanceResponse.setFine(attend.getFine());
+                }
+            });
+            return attendanceResponse;
         }
         else{
             throw new CustomException(ErrorCode.RESULT_NOT_FOUND);

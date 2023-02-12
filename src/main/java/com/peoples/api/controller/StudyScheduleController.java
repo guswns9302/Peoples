@@ -2,6 +2,7 @@ package com.peoples.api.controller;
 
 import com.peoples.api.domain.StudySchedule;
 import com.peoples.api.domain.security.SecurityUser;
+import com.peoples.api.dto.response.AttendanceResponse;
 import com.peoples.api.dto.response.StudyScheduleResponse;
 import com.peoples.api.service.StudyScheduleService;
 import lombok.RequiredArgsConstructor;
@@ -38,5 +39,12 @@ public class StudyScheduleController {
     @DeleteMapping("study/schedule")
     public ResponseEntity<Boolean> deleteStudySchedule(@RequestBody Map<String,Object> param){
         return ResponseEntity.ok(studyScheduleService.delete(param));
+    }
+
+    @GetMapping("/study/schedule/{studyScheduleId}")
+    public ResponseEntity<AttendanceResponse> getStudyScheduleAttend (@AuthenticationPrincipal SecurityUser user, @PathVariable Long studyScheduleId){
+        log.debug("user name : {}", user.getUsername());
+        log.debug("studyScheduleId : {}", studyScheduleId);
+        return ResponseEntity.ok(studyScheduleService.getAttendByStudyScheduleId(studyScheduleId, user.getUsername()));
     }
 }

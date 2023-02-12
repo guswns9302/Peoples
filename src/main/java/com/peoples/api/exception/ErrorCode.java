@@ -49,6 +49,9 @@ public enum ErrorCode {
     /* 403 FORBIDDEN : 권한이 없는 사용자 */
     TOKEN_EXPIRED(HttpStatus.FORBIDDEN, "토큰이 만료되었습니다. 재발급 요청하세요."),
 
+    /* 403 FORBIDDEN : 권한이 없는 사용자 */
+    NOT_MASTER(HttpStatus.FORBIDDEN, "스터디장이 아닙니다."),
+
     /* 404 NOT_FOUND : Resource를 찾을 수 없음 */
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자 정보를 찾을 수 없습니다."),
 

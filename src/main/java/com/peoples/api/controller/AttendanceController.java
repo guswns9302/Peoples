@@ -43,9 +43,9 @@ public class AttendanceController {
         return ResponseEntity.ok(attendanceService.getCheckNumber(param));
     }
 
-    @GetMapping("/attendance")
-    public ResponseEntity<Map<String,Object>> attendList(@AuthenticationPrincipal SecurityUser user, @RequestBody Map<String, Object> param){
-        return ResponseEntity.ok(attendanceService.attendList(user.getUsername(), param));
+    @GetMapping("/attendance/{userId}")
+    public ResponseEntity<Map<String,Object>> attendList(@PathVariable String userId, @RequestBody Map<String, Object> param){
+        return ResponseEntity.ok(attendanceService.attendList(userId, param));
     }
 
     @GetMapping("/attendance/master")

@@ -96,9 +96,14 @@ public class StudyMemberService {
     public boolean updateManager(Map<String, Object> param) {
         Optional<StudyMember> studyMember = studyMemberRepository.findById(Long.parseLong(param.get("studyMemberId").toString()));
         if(studyMember.isPresent()){
-            studyMember.get().updateManager(studyMember.get().isUserManager());
-            alarmService.changeManager(studyMember.get());
-            return true;
+            if(studyMember.get().getUserRole().equals("스터디장")){
+                throw new CustomException(ErrorCode.MASTER_DO_NOT_CHANGE);
+            }
+            else{
+                studyMember.get().updateManager(studyMember.get().isUserManager());
+                alarmService.changeManager(studyMember.get());
+                return true;
+            }
         }
         else{
             throw new CustomException(ErrorCode.RESULT_NOT_FOUND);
@@ -138,10 +143,16 @@ public class StudyMemberService {
         Optional<StudyMember> my = studyMemberRepository.findByUser_UserIdAndStudy_StudyId(user.getUserId(), studyMember.get().getStudy().getStudyId());
 
         if(studyMember.isPresent() && my.isPresent()){
-            my.get().updateRole("");
-            studyMember.get().updateRole("스터디장");
-            studyMember.get().updateManager(false);
-            return true;
+            if(my.get().getUserRole().equals("스터디장")){
+                my.get().updateRole("");
+                my.get().updateManager(my.get().isUserManager());
+                studyMember.get().updateRole("스터디장");
+                studyMember.get().updateManager(false);
+                return true;
+            }
+            else{
+                throw new CustomException(ErrorCode.NOT_MASTER);
+            }
         }
         else{
             throw new CustomException(ErrorCode.RESULT_NOT_FOUND);
