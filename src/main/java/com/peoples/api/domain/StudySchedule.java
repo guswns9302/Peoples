@@ -1,5 +1,6 @@
 package com.peoples.api.domain;
 
+import com.peoples.api.domain.enumeration.RepeatType;
 import lombok.*;
 
 import javax.persistence.*;
@@ -11,6 +12,7 @@ import java.util.Map;
 @Entity
 @Getter
 @Builder
+@ToString
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "TB_STUDY_SCHEDULE")
@@ -46,6 +48,9 @@ public class StudySchedule {
     @Column(name = "REPEAT_NUMBER")
     private Long repeatNumber;
 
+    @Column(name = "REPEAT_TYPE")
+    private String repeatType;
+
     @OneToMany(mappedBy = "studySchedule")
     private List<Attendance> attendanceList = new ArrayList<>();
 
@@ -59,5 +64,9 @@ public class StudySchedule {
 
     public void repeatNumberIn (Long number){
         this.repeatNumber = number;
+    }
+
+    public void repeatTypeIn (String repeatType){
+        this.repeatType = repeatType;
     }
 }

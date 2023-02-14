@@ -7,6 +7,7 @@ import com.peoples.api.domain.enumeration.Status;
 import com.peoples.api.domain.security.SecurityUser;
 import com.peoples.api.dto.request.StudyNotiRequest;
 import com.peoples.api.dto.request.StudyRequest;
+import com.peoples.api.dto.response.ParticipationStudyResponse;
 import com.peoples.api.dto.response.StudyNotiAllResponse;
 import com.peoples.api.dto.response.StudyResponse;
 import com.peoples.api.dto.response.StudyScheduleResponse;
@@ -106,14 +107,12 @@ public class StudyService {
         return joinStudyList;
     }
 
-    public List<StudyResponse> findFinishStudyList(String userId) {
+    public List<ParticipationStudyResponse> findParticipationStudyList(String userId) {
         List<StudyMember> studyByUserId = userRepository.findByUserId(userId).get().getStudyMemberList();
-        List<StudyResponse> finishStudyList = new ArrayList<>();
+        List<ParticipationStudyResponse> finishStudyList = new ArrayList<>();
         if(!studyByUserId.isEmpty()){
             studyByUserId.forEach(data->{
-                if(data.getStudy().getStatus().equals(Status.STOP)){
-                    finishStudyList.add(StudyResponse.from(data.getStudy()));
-                }
+                finishStudyList.add(ParticipationStudyResponse.from(data.getStudy()));
             });
         }
         return finishStudyList;
@@ -373,6 +372,7 @@ public class StudyService {
         Optional<Study> study = studyRepository.findById(studyId);
         if(study.isPresent()){
             study.get().finish(Status.STOP);
+            study.get().setFinishAt(LocalDateTime.now());
 
             // 현재시간
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");

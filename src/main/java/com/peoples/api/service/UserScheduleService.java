@@ -12,6 +12,7 @@ import com.peoples.api.repository.UserRepository;
 import com.peoples.api.repository.UserScheduleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Transaction;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +30,7 @@ public class UserScheduleService {
     private final UserRepository userRepository;
     private final UserScheduleRepository userScheduleRepository;
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<UserScheduleResponse> findUserSchedule(String userId) {
         Optional<User> byUserId = userRepository.findByUserId(userId);
 
@@ -79,16 +80,17 @@ public class UserScheduleService {
     }
 
     @Transactional
-    public List<UserScheduleResponse> updateSchedule(Map<String, Object> param) {
+    public boolean updateSchedule(Map<String, Object> param) {
         Optional<UserSchedule> schedule = userScheduleRepository.findById(Long.parseLong(param.get("scheduleId").toString()));
         if(schedule.isPresent()){
-            if(param.get("scheduleName") != null || param.get("scheduleName") != ""){
+            System.out.println(param.get("scheduleName"));
+            if(!param.get("scheduleName").equals("")){
                 schedule.get().updateName(param.get("scheduleName").toString());
             }
             else{
                 userScheduleRepository.delete(schedule.get());
             }
-            return this.findUserSchedule(schedule.get().getUser().getUserId());
+            return true;
         }
         else{
             throw new CustomException(ErrorCode.RESULT_NOT_FOUND);

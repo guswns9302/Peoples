@@ -64,6 +64,9 @@ public class Study {
     @Column(name = "UPDATED_AT")
     private LocalDateTime updatedAt;
 
+    @Column(name = "FINISH_AT")
+    private LocalDateTime finishAt;
+
     @Column(name = "STATUS")
     @Enumerated(EnumType.STRING)
     private Status status;
@@ -98,5 +101,9 @@ public class Study {
 
     public void finish(Status status){
         this.status = status;
+    }
+
+    public void setFinishAt(LocalDateTime finishAt){
+        this.finishAt = finishAt;
     }
 }

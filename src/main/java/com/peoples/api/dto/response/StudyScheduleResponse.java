@@ -21,6 +21,8 @@ public class StudyScheduleResponse {
     private LocalDateTime studyScheduleEndDateTime;
     private String studySchedulePlace;
     private String studyName;
+    private String repeatType;
+    private Long repeatNumber;
 
     public static StudyScheduleResponse from (StudySchedule studySchedule){
         LocalDateTime startDateTime =
@@ -41,6 +43,8 @@ public class StudyScheduleResponse {
                 .studyScheduleEndDateTime(endDateTime)
                 .studySchedulePlace(studySchedule.getStudySchedulePlace())
                 .studyName(studySchedule.getStudy().getStudyName())
+                .repeatType(studySchedule.getRepeatType())
+                .repeatNumber(studySchedule.getRepeatNumber())
                 .build();
     }
 }

@@ -45,7 +45,7 @@ public class UserService {
         if(this.verificationEmail(param)){
             // 비밀번호 - 비밀번호 확인 체크
             if(param.get("password").toString().equals(param.get("password_check").toString())){
-                String imgName = "peoples_logo.png";
+                String imgName = "default_user.png";
 
                 User newUser = User.builder()
                         .userId(param.get("userId").toString())

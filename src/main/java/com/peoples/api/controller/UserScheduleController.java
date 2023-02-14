@@ -3,6 +3,8 @@ package com.peoples.api.controller;
 import com.peoples.api.domain.security.SecurityUser;
 import com.peoples.api.dto.request.UserScheduleRequest;
 import com.peoples.api.dto.response.UserScheduleResponse;
+import com.peoples.api.exception.CustomException;
+import com.peoples.api.exception.ErrorCode;
 import com.peoples.api.service.UserScheduleService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +39,13 @@ public class UserScheduleController {
     }
 
     @PutMapping("/user/schedule")
-    public ResponseEntity<List<UserScheduleResponse>> updateSchedule(@RequestBody Map<String,Object> param){
-        return ResponseEntity.ok(userScheduleService.updateSchedule(param));
+    public ResponseEntity<List<UserScheduleResponse>> updateSchedule(@AuthenticationPrincipal SecurityUser user, @RequestBody Map<String,Object> param){
+        boolean result = userScheduleService.updateSchedule(param);
+        if(result){
+            return ResponseEntity.ok(userScheduleService.findUserSchedule(user.getUsername()));
+        }
+        else{
+            throw new CustomException(ErrorCode.RESULT_NOT_FOUND);
+        }
     }
 }

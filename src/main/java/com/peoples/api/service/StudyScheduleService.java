@@ -3,6 +3,7 @@ package com.peoples.api.service;
 import com.peoples.api.domain.Study;
 import com.peoples.api.domain.StudyMember;
 import com.peoples.api.domain.StudySchedule;
+import com.peoples.api.domain.enumeration.RepeatType;
 import com.peoples.api.dto.response.AttendanceResponse;
 import com.peoples.api.dto.response.StudyScheduleResponse;
 import com.peoples.api.exception.CustomException;
@@ -60,7 +61,8 @@ public class StudyScheduleService {
             if(!(param.get("repeatDay").toString().equals(""))){
                 LocalDate scheduleDate = LocalDate.parse(param.get("studyScheduleDate").toString());
                 LocalDate targetDate = LocalDate.parse(param.get("targetDate").toString()).plusDays(1);
-                if(param.get("repeatDay").toString().equals("everyDay")){
+                if(param.get("repeatDay").toString().equals(RepeatType.everyDay.name())){
+                    studySchedule.repeatTypeIn(RepeatType.everyDay.name());
                     LocalDate tomorrow = scheduleDate.plusDays(1);
                     while (tomorrow.isBefore(targetDate)){
                         StudySchedule repeatStudySchedule = StudySchedule.builder()
@@ -72,12 +74,14 @@ public class StudyScheduleService {
                                 .studyScheduleStart(param.get("studyScheduleStart").toString())
                                 .studyScheduleEnd(param.get("studyScheduleEnd").toString())
                                 .repeatNumber(studySchedule.getStudyScheduleId())
+                                .repeatType(RepeatType.everyDay.name())
                                 .build();
                         studyScheduleRepository.save(repeatStudySchedule);
                         tomorrow = tomorrow.plusDays(1);
                     }
                 }
-                else if(param.get("repeatDay").toString().equals("everyWeek")){
+                else if(param.get("repeatDay").toString().equals(RepeatType.everyWeek.name())){
+                    studySchedule.repeatTypeIn(RepeatType.everyWeek.name());
                     LocalDate week = scheduleDate.plusDays(7);
                     while (week.isBefore(targetDate)){
                         StudySchedule repeatStudySchedule = StudySchedule.builder()
@@ -89,12 +93,14 @@ public class StudyScheduleService {
                                 .studyScheduleStart(param.get("studyScheduleStart").toString())
                                 .studyScheduleEnd(param.get("studyScheduleEnd").toString())
                                 .repeatNumber(studySchedule.getStudyScheduleId())
+                                .repeatType(RepeatType.everyWeek.name())
                                 .build();
                         studyScheduleRepository.save(repeatStudySchedule);
                         week = week.plusDays(7);
                     }
                 }
-                else if(param.get("repeatDay").toString().equals("everyTwoWeek")){
+                else if(param.get("repeatDay").toString().equals(RepeatType.everyTwoWeek.name())){
+                    studySchedule.repeatTypeIn(RepeatType.everyTwoWeek.name());
                     LocalDate twoweek = scheduleDate.plusDays(14);
                     while (twoweek.isBefore(targetDate)){
                         StudySchedule repeatStudySchedule = StudySchedule.builder()
@@ -106,12 +112,14 @@ public class StudyScheduleService {
                                 .studyScheduleStart(param.get("studyScheduleStart").toString())
                                 .studyScheduleEnd(param.get("studyScheduleEnd").toString())
                                 .repeatNumber(studySchedule.getStudyScheduleId())
+                                .repeatType(RepeatType.everyTwoWeek.name())
                                 .build();
                         studyScheduleRepository.save(repeatStudySchedule);
                         twoweek = twoweek.plusDays(7);
                     }
                 }
-                else if(param.get("repeatDay").toString().equals("everyMonth")){
+                else if(param.get("repeatDay").toString().equals(RepeatType.everyMonth.name())){
+                    studySchedule.repeatTypeIn(RepeatType.everyMonth.name());
                     LocalDate month = scheduleDate.plusMonths(1);
                     while (month.isBefore(targetDate)){
                         StudySchedule repeatStudySchedule = StudySchedule.builder()
@@ -123,6 +131,7 @@ public class StudyScheduleService {
                                 .studyScheduleStart(param.get("studyScheduleStart").toString())
                                 .studyScheduleEnd(param.get("studyScheduleEnd").toString())
                                 .repeatNumber(studySchedule.getStudyScheduleId())
+                                .repeatType(RepeatType.everyMonth.name())
                                 .build();
                         studyScheduleRepository.save(repeatStudySchedule);
                         month = month.plusMonths(1);
