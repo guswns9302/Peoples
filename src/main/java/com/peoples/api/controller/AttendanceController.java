@@ -38,19 +38,19 @@ public class AttendanceController {
         return ResponseEntity.ok(attendanceService.attendSchedule(user.getUsername(), param));
     }
 
-    @GetMapping("/attendance/checkNumber")
-    public ResponseEntity<Integer> attend(@RequestBody Map<String, Long> param){
-        return ResponseEntity.ok(attendanceService.getCheckNumber(param));
+    @GetMapping("/attendance/checkNumber/{studyScheduleId}")
+    public ResponseEntity<Integer> attend(@PathVariable Long studyScheduleId){
+        return ResponseEntity.ok(attendanceService.getCheckNumber(studyScheduleId));
     }
 
     @GetMapping("/attendance/{userId}")
-    public ResponseEntity<Map<String,Object>> attendList(@PathVariable String userId, @RequestBody Map<String, Object> param){
-        return ResponseEntity.ok(attendanceService.attendList(userId, param));
+    public ResponseEntity<Map<String,Object>> attendList(@PathVariable String userId, @RequestParam Long studyId, @RequestParam String searchDateStart, @RequestParam String searchDateEnd){
+        return ResponseEntity.ok(attendanceService.attendList(userId, studyId, searchDateStart, searchDateEnd));
     }
 
-    @GetMapping("/attendance/master")
-    public ResponseEntity<Map<String,Object>> attendListForMaster(@RequestBody Map<String, Object> param){
-        return ResponseEntity.ok(attendanceService.attendListForMaster(param));
+    @GetMapping("/attendance/master/{studyId}")
+    public ResponseEntity<Map<String,Object>> attendListForMaster(@PathVariable Long studyId, @RequestParam String searchDate){
+        return ResponseEntity.ok(attendanceService.attendListForMaster(studyId, searchDate));
     }
 
     @PutMapping("/attendance/master")

@@ -17,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -149,8 +151,33 @@ public class StudyScheduleService {
     public boolean updateSchedule(Map<String, Object> param) {
         Optional<StudySchedule> studySchedule = studyScheduleRepository.findById(Long.parseLong(param.get("studyScheduleId").toString()));
         if(studySchedule.isPresent()){
-            studySchedule.get().updateStudySchedule(param);
-            return true;
+            if(Boolean.parseBoolean(param.get("isRepeat").toString())){
+                //반복일정도 같이 변경 (현재 시점 기준 이후 일정만)
+                Long repeatNum = studySchedule.get().getRepeatNumber();
+                List<StudySchedule> studyScheduleList = studyScheduleRepository.findByRepeatNumber(repeatNum);
+                studyScheduleList.forEach(list->{
+                    // 스터디 날짜 및 시작 시간 조합
+                    LocalDate scheduleDate = list.getStudyScheduleDate();
+                    String startDateStr = scheduleDate.toString() + " " + list.getStudyScheduleStart();
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+                    LocalDateTime scheduleDateTimeStart = LocalDateTime.parse(startDateStr, formatter);
+
+                    // 현재시간
+                    LocalDateTime current = LocalDateTime.now();
+                    LocalDateTime now = LocalDateTime.parse(current.format(formatter), formatter);
+                    if(scheduleDateTimeStart.isAfter(now)){
+                        // 일정이 현재 날짜보다 이후인 경우에 삭제
+                        studyScheduleRepository.delete(list);
+                    }
+                    // 새로운 반복 일정으로 생성
+                });
+                return this.createSchedule(param);
+            }
+            else{
+                //현재 일정만 변경
+                studySchedule.get().updateStudySchedule(param);
+                return true;
+            }
         }
         else{
             throw new CustomException(ErrorCode.RESULT_NOT_FOUND);

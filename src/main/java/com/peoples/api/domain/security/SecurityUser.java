@@ -65,7 +65,6 @@ public class SecurityUser implements UserDetails {
     }
 
     public static SecurityUser of(User user) {
-        System.out.println("thdhkt!!");
         return SecurityUser.builder().user(user).build();
     }
 }

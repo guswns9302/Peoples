@@ -330,24 +330,30 @@ public class StudyService {
                 return false;
             }
             else{
-                StudyMember studyMember = StudyMember.builder()
-                        .user(user)
-                        .study(study.get())
-                        .userManager(false)
-                        .userRole("")
-                        .deposit(Integer.parseInt(study.get().getStudyRule().get("deposit").toString()))
-                        .build();
+                Optional<StudyMember> existMember = studyMemberRepository.findByUser_UserId(user.getUserId());
+                if(existMember.isEmpty()){
+                    StudyMember studyMember = StudyMember.builder()
+                            .user(user)
+                            .study(study.get())
+                            .userManager(false)
+                            .userRole("")
+                            .deposit(Integer.parseInt(study.get().getStudyRule().get("deposit").toString()))
+                            .build();
 
-                UserStudyHistory userStudyHistory = UserStudyHistory.builder()
-                        .user(user)
-                        .studyName(study.get().getStudyName())
-                        .start(study.get().getCreatedAt())
-                        .po(ParticipationOperation.PARTICIPATION)
-                        .build();
+                    UserStudyHistory userStudyHistory = UserStudyHistory.builder()
+                            .user(user)
+                            .studyName(study.get().getStudyName())
+                            .start(study.get().getCreatedAt())
+                            .po(ParticipationOperation.PARTICIPATION)
+                            .build();
 
-                studyMemberRepository.save(studyMember);
-                userStudyHistoryRepository.save(userStudyHistory);
-                return true;
+                    studyMemberRepository.save(studyMember);
+                    userStudyHistoryRepository.save(userStudyHistory);
+                    return true;
+                }
+                else{
+                    throw new CustomException(ErrorCode.DUPLICATE_STUDY_MEMBER);
+                }
             }
         }
         else{

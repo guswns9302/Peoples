@@ -143,8 +143,8 @@ public class AttendanceService {
     }
 
     @Transactional(readOnly = true)
-    public int getCheckNumber(Map<String, Long> param) {
-        Optional<StudySchedule> studySchedule = studyScheduleRepository.findById(param.get("studyScheduleId"));
+    public int getCheckNumber(Long studyScheduleId) {
+        Optional<StudySchedule> studySchedule = studyScheduleRepository.findById(studyScheduleId);
         if(studySchedule.isPresent()){
             return studySchedule.get().getCheckNumber();
         }
@@ -154,10 +154,10 @@ public class AttendanceService {
     }
 
     @Transactional(readOnly = true)
-    public Map<String,Object> attendList(String userId, Map<String, Object> param) {
+    public Map<String,Object> attendList(String userId, Long studyId, String searchDateStart, String searchDateEnd) {
         Map<String,Object> result = new HashMap<>();
         List<Map<String,Object>> detailList = new ArrayList<>();
-        Optional<Study> study = studyRepository.findById(Long.parseLong(param.get("studyId").toString()));
+        Optional<Study> study = studyRepository.findById(studyId);
         if(study.isPresent()){
             List<Integer> totalFine = new ArrayList<>();
             List<Integer> totalAttendance = new ArrayList<>();
@@ -180,7 +180,7 @@ public class AttendanceService {
                 // 현재시간
                 LocalDateTime current = LocalDateTime.now();
                 LocalDateTime now = LocalDateTime.parse(current.format(formatter), formatter);
-                if(param.get("searchDateStart").toString().equals("")){
+                if(searchDateStart.equals("")){
                     if(now.isAfter(scheduleDateTimeEnd)){
                         detail.put("studyScheduleDateTime", scheduleDateTimeStart);
                     }
@@ -206,12 +206,12 @@ public class AttendanceService {
                 }
                 else{
                     // 조회기간
-                    LocalDate searchDateStart = LocalDate.parse(param.get("searchDateStart").toString());
-                    LocalDate searchDateEnd = LocalDate.parse(param.get("searchDateEnd").toString());
-                    log.debug("조회 시작 날짜 : {}", searchDateStart);
-                    log.debug("조회 종료 날짜 : {}", searchDateEnd);
+                    LocalDate searchDateStartToLD = LocalDate.parse(searchDateStart);
+                    LocalDate searchDateEndToLd = LocalDate.parse(searchDateEnd);
+                    log.debug("조회 시작 날짜 : {}", searchDateStartToLD);
+                    log.debug("조회 종료 날짜 : {}", searchDateEndToLd);
                     log.debug("스터디 날짜 : {}", x.getStudyScheduleDate());
-                    if(searchDateStart.isBefore(x.getStudyScheduleDate()) && (searchDateEnd.isAfter(x.getStudyScheduleDate()) || searchDateEnd.isEqual(x.getStudyScheduleDate()))){
+                    if(searchDateStartToLD.isBefore(x.getStudyScheduleDate()) && (searchDateEndToLd.isAfter(x.getStudyScheduleDate()) || searchDateEndToLd.isEqual(x.getStudyScheduleDate()))){
                         detail.put("studyScheduleDateTime", scheduleDateTimeStart);
                         x.getAttendanceList().forEach(y->{
                             if(y.getUserId().equals(userId)){
@@ -260,14 +260,14 @@ public class AttendanceService {
     }
 
     @Transactional(readOnly = true)
-    public Map<String,Object> attendListForMaster(Map<String, Object> param) {
-        Optional<Study> study = studyRepository.findById(Long.parseLong(param.get("studyId").toString()));
+    public Map<String,Object> attendListForMaster(Long studyId, String searchDate) {
+        Optional<Study> study = studyRepository.findById(studyId);
         Map<String, Object> result = new HashMap<>();
 
         if(study.isPresent()){
-            LocalDate searchDate = LocalDate.parse(param.get("searchDate").toString());
+            LocalDate searchDateToLD = LocalDate.parse(searchDate);
             study.get().getStudyScheduleList().forEach(x->{
-                if(searchDate.isEqual(x.getStudyScheduleDate())){
+                if(searchDateToLD.isEqual(x.getStudyScheduleDate())){
                     List<Map<String,Object>> userAttendList = new ArrayList<>();
                     x.getAttendanceList().forEach(y->{
                         Map<String, Object> findUser = userservice.findUser(y.getUserId());
