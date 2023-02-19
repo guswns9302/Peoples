@@ -2,6 +2,7 @@ package com.peoples.api.service;
 
 import com.peoples.api.domain.*;
 import com.peoples.api.domain.enumeration.AttendStatus;
+import com.peoples.api.dto.response.AlarmResponse;
 import com.peoples.api.dto.response.AttendanceResponse;
 import com.peoples.api.exception.CustomException;
 import com.peoples.api.exception.ErrorCode;
@@ -91,5 +92,15 @@ public class AlarmService {
                 alarmRepository.save(alarm);
             }
         });
+    }
+
+    public List<AlarmResponse> getAlarmList(String userId) {
+        List<Alarm> alarmList = alarmRepository.findByUser_UserId(userId);
+        List<AlarmResponse> result = new ArrayList<>();
+        alarmList.forEach(list->{
+            result.add(AlarmResponse.from(list));
+        });
+
+        return result;
     }
 }
