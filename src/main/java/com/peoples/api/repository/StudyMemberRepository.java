@@ -11,5 +11,5 @@ public interface StudyMemberRepository extends JpaRepository<StudyMember, Long> 
 
     Optional<StudyMember> findByUser_UserIdAndStudy_StudyId(String userId, long studyId);
 
-    Optional<StudyMember> findByUser_UserId(String userId);
+    //Optional<StudyMember> findByUser_UserId(String userId);
 }

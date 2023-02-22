@@ -23,6 +23,9 @@ public enum ErrorCode {
     DUPLICATE_STUDY_MEMBER(HttpStatus.BAD_REQUEST, "이미 가입한 스터디 입니다."),
 
     /* 400 BAD_REQUEST : 잘못된 요청 */
+    ALREADY_STUDY_MASTER(HttpStatus.BAD_REQUEST, "이미 해당 스터디의 스터디장 입니다."),
+
+    /* 400 BAD_REQUEST : 잘못된 요청 */
     USER_MISMATCH_SCHEDULE(HttpStatus.BAD_REQUEST, "사용자가 매칭되지 않습니다."),
 
     /* 400 BAD_REQUEST : 잘못된 요청 */

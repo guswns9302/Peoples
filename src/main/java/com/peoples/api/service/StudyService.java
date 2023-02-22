@@ -330,7 +330,7 @@ public class StudyService {
                 return false;
             }
             else{
-                Optional<StudyMember> existMember = studyMemberRepository.findByUser_UserId(user.getUserId());
+                Optional<StudyMember> existMember = studyMemberRepository.findByUser_UserIdAndStudy_StudyId(user.getUserId(), studyId);
                 if(existMember.isEmpty()){
                     StudyMember studyMember = StudyMember.builder()
                             .user(user)
@@ -352,7 +352,12 @@ public class StudyService {
                     return true;
                 }
                 else{
-                    throw new CustomException(ErrorCode.DUPLICATE_STUDY_MEMBER);
+                    if(existMember.get().getUserRole().equals("스터디장")){
+                        throw new CustomException(ErrorCode.ALREADY_STUDY_MASTER);
+                    }
+                    else{
+                        throw new CustomException(ErrorCode.DUPLICATE_STUDY_MEMBER);
+                    }
                 }
             }
         }
