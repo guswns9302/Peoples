@@ -184,12 +184,12 @@ public class StudyService {
             if(nearDay.size() > 0){
                 min = Collections.min(nearDay);
                 result.put("studySchedule",StudyScheduleResponse.from(studyScheduleList.get(nearDay.indexOf(min))));
-                if(min < 0){
+                /*if(min < 0){
                     min = 0;
                 }
                 else{
                     min = min / 60 / 60;
-                }
+                }*/
                 result.put("dayCnt", min);
             }
             else{
