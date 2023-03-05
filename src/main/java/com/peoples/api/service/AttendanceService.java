@@ -2,26 +2,21 @@ package com.peoples.api.service;
 
 import com.peoples.api.domain.*;
 import com.peoples.api.domain.enumeration.AttendStatus;
-import com.peoples.api.domain.enumeration.Status;
-import com.peoples.api.domain.security.SecurityUser;
-import com.peoples.api.dto.request.UserScheduleRequest;
 import com.peoples.api.dto.response.AttendanceResponse;
-import com.peoples.api.dto.response.UserScheduleResponse;
 import com.peoples.api.exception.CustomException;
 import com.peoples.api.exception.ErrorCode;
 import com.peoples.api.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.type.IntegerType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +28,7 @@ public class AttendanceService {
     private final AttendanceRepository attendanceRepository;
     private final AlarmService alarmService;
     private final UserService userservice;
+    private final StudyMemberRepository studyMemberRepository;
 
     @Transactional
     public AttendanceResponse attendSchedule(String userId, Map<String, Object> param) {
@@ -181,11 +177,14 @@ public class AttendanceService {
                 LocalDateTime current = LocalDateTime.now();
                 LocalDateTime now = LocalDateTime.parse(current.format(formatter), formatter);
                 if(searchDateStart.equals("")){
-                    if(now.isAfter(scheduleDateTimeEnd)){
-                        detail.put("studyScheduleDateTime", scheduleDateTimeStart);
-                    }
+//                    if(now.isAfter(scheduleDateTimeEnd)){
+//                        detail.put("studyScheduleDateTime", scheduleDateTimeStart);
+//                    }
                     x.getAttendanceList().forEach(y->{
                         if(y.getUserId().equals(userId)){
+                            if(now.isAfter(scheduleDateTimeEnd)){
+                                detail.put("studyScheduleDateTime", scheduleDateTimeStart);
+                            }
                             detail.put("fine", y.getFine());
                             detail.put("attendance", y.getAttendStatus());
                             totalFine.add(y.getFine());
@@ -212,9 +211,10 @@ public class AttendanceService {
                     log.debug("조회 종료 날짜 : {}", searchDateEndToLd);
                     log.debug("스터디 날짜 : {}", x.getStudyScheduleDate());
                     if(searchDateStartToLD.isBefore(x.getStudyScheduleDate()) && (searchDateEndToLd.isAfter(x.getStudyScheduleDate()) || searchDateEndToLd.isEqual(x.getStudyScheduleDate()))){
-                        detail.put("studyScheduleDateTime", scheduleDateTimeStart);
+                        //detail.put("studyScheduleDateTime", scheduleDateTimeStart);
                         x.getAttendanceList().forEach(y->{
                             if(y.getUserId().equals(userId)){
+                                detail.put("studyScheduleDateTime", scheduleDateTimeStart);
                                 detail.put("fine", y.getFine());
                                 detail.put("attendance", y.getAttendStatus());
                                 totalFine.add(y.getFine());
@@ -344,5 +344,69 @@ public class AttendanceService {
                 alarmService.expireConfirm(userId,study);
             }
         }
+    }
+
+    public Map<String, Object> statistics(String userId, Long studyId) {
+        Map<String,Object> result = new HashMap<>();
+        Optional<Study> study = studyRepository.findById(studyId);
+        if(study.isPresent()){
+            List<Integer> totalFine = new ArrayList<>();
+            List<Integer> totalAttendance = new ArrayList<>();
+            List<Integer> totalLateness = new ArrayList<>();
+            List<Integer> totalAbsent = new ArrayList<>();
+            List<Integer> totalHold = new ArrayList<>();
+
+            study.get().getStudyScheduleList().forEach(x->{
+                x.getAttendanceList().forEach(y->{
+                    if(y.getUserId().equals(userId)){
+                        totalFine.add(y.getFine());
+                        if(y.getAttendStatus().equals(AttendStatus.ATTENDANCE)){
+                            totalAttendance.add(1);
+                        }
+                        else if(y.getAttendStatus().equals(AttendStatus.LATENESS)){
+                            totalLateness.add(1);
+                        }
+                        else if(y.getAttendStatus().equals(AttendStatus.ABSENT)){
+                            totalAbsent.add(1);
+                        }
+                        else if(y.getAttendStatus().equals(AttendStatus.HOLD)){
+                            totalHold.add(1);
+                        }
+                    }
+                });
+            });
+
+            int fine = totalFine.stream().mapToInt(Integer::intValue).sum();
+            int attendanceCnt = totalAttendance.stream().mapToInt(Integer::intValue).sum();
+            int latenessCnt = totalLateness.stream().mapToInt(Integer::intValue).sum();
+            int absentCnt = totalAbsent.stream().mapToInt(Integer::intValue).sum();
+            int holdCnt = totalHold.stream().mapToInt(Integer::intValue).sum();
+
+            result.put("totalFine",fine);
+            result.put("attendanceCnt",attendanceCnt);
+            result.put("latenessCnt",latenessCnt);
+            result.put("absentCnt",absentCnt);
+            result.put("holdCnt",holdCnt);
+            result.put("totalAttendCnt", study.get().getStudyScheduleList().size());
+
+            return result;
+        }
+        else{
+            throw new CustomException(ErrorCode.STUDY_NOT_FOUND);
+        }
+    }
+
+    public List<Map<String,Object>> statisticsForMaser(Long studyId) {
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        List<StudyMember> studyMemberList = studyMemberRepository.findByStudy_StudyId(studyId);
+        studyMemberList.forEach(member->{
+            Map<String, Object> getStatistics = this.statistics(member.getUser().getUserId(), studyId);
+            getStatistics.put("userId", member.getUser().getUserId());
+            getStatistics.put("img", ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/v1/downloadIMG").queryParam("fileName", member.getUser().getImg()).toUriString());
+
+            result.add(getStatistics);
+        });
+        return result;
     }
 }

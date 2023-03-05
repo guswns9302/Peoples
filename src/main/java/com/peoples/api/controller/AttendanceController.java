@@ -57,4 +57,14 @@ public class AttendanceController {
     public ResponseEntity<Boolean> updateAttend(@RequestBody Map<String, Object> param){
         return ResponseEntity.ok(attendanceService.updateAttend(param));
     }
+
+    @GetMapping("/attendance/statistics")
+    public ResponseEntity<Map<String,Object>> statistics(@AuthenticationPrincipal SecurityUser user, @RequestParam Long studyId){
+        return ResponseEntity.ok(attendanceService.statistics(user.getUsername(), studyId));
+    }
+
+    @GetMapping("/attendance/master/statistics")
+    public ResponseEntity<List<Map<String,Object>>> masterToStatistics(@RequestParam Long studyId){
+        return ResponseEntity.ok(attendanceService.statisticsForMaser(studyId));
+    }
 }
