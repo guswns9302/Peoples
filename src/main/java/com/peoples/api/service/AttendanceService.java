@@ -47,78 +47,84 @@ public class AttendanceService {
                 throw new CustomException(ErrorCode.NOT_STUDY_MEMBER);
             }
             else{
-                response.setUserId(userId);
-                if(studySchedule.get().getCheckNumber() == Integer.parseInt(param.get("checkNumber").toString())){
-                    // 스터디 날짜 및 시작 시간 조합
-                    LocalDate scheduleDate = studySchedule.get().getStudyScheduleDate();
-                    String startDateStr = scheduleDate.toString() + " " + studySchedule.get().getStudyScheduleStart();
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-                    LocalDateTime scheduleDateTimeStart = LocalDateTime.parse(startDateStr, formatter);
+                Optional<Attendance> isUserAttend = attendanceRepository.findByUserIdAndStudySchedule_StudyScheduleId(userId, Long.parseLong(param.get("studyScheduleId").toString()));
+                if(isUserAttend.isPresent()){
+                    throw new CustomException(ErrorCode.DUPLICATE_RESOURCE);
+                }
+                else{
+                    response.setUserId(userId);
+                    if(studySchedule.get().getCheckNumber() == Integer.parseInt(param.get("checkNumber").toString())){
+                        // 스터디 날짜 및 시작 시간 조합
+                        LocalDate scheduleDate = studySchedule.get().getStudyScheduleDate();
+                        String startDateStr = scheduleDate.toString() + " " + studySchedule.get().getStudyScheduleStart();
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+                        LocalDateTime scheduleDateTimeStart = LocalDateTime.parse(startDateStr, formatter);
 
-                    // 스터디 날짜 및 종료 시간 조합
-                    String endDateStr = scheduleDate.toString() + " " + studySchedule.get().getStudyScheduleEnd();
-                    LocalDateTime scheduleDateTimeEnd = LocalDateTime.parse(endDateStr, formatter);
+                        // 스터디 날짜 및 종료 시간 조합
+                        String endDateStr = scheduleDate.toString() + " " + studySchedule.get().getStudyScheduleEnd();
+                        LocalDateTime scheduleDateTimeEnd = LocalDateTime.parse(endDateStr, formatter);
 
-                    // 출석체크 시점 현재시간
-                    LocalDateTime current = LocalDateTime.now();
-                    LocalDateTime now = LocalDateTime.parse(current.format(formatter), formatter);
+                        // 출석체크 시점 현재시간
+                        LocalDateTime current = LocalDateTime.now();
+                        LocalDateTime now = LocalDateTime.parse(current.format(formatter), formatter);
 
-                    log.debug("현재 시간 : {}", now);
-                    log.debug("스터디 시간 : {}", scheduleDateTimeStart);
-                    Map<String,Object> studyRule = studySchedule.get().getStudy().getStudyRule();
-                    log.debug("스터디 규칙 : {}", studyRule);
-                    // 지각 시간
-                    HashMap lateness = (HashMap) studyRule.get("lateness");
-                    int latenessTime = Integer.parseInt(lateness.get("time").toString());
-                    int latenessFine = Integer.parseInt(lateness.get("fine").toString());
-                    int latenessCnt = Integer.parseInt(lateness.get("count").toString());
-                    // 결석 시간
-                    HashMap absent = (HashMap) studyRule.get("absent");
-                    int absentTime = Integer.parseInt(absent.get("time").toString());
-                    int absentFine = Integer.parseInt(absent.get("fine").toString());
+                        log.debug("현재 시간 : {}", now);
+                        log.debug("스터디 시간 : {}", scheduleDateTimeStart);
+                        Map<String,Object> studyRule = studySchedule.get().getStudy().getStudyRule();
+                        log.debug("스터디 규칙 : {}", studyRule);
+                        // 지각 시간
+                        HashMap lateness = (HashMap) studyRule.get("lateness");
+                        int latenessTime = Integer.parseInt(lateness.get("time").toString());
+                        int latenessFine = Integer.parseInt(lateness.get("fine").toString());
+                        int latenessCnt = Integer.parseInt(lateness.get("count").toString());
+                        // 결석 시간
+                        HashMap absent = (HashMap) studyRule.get("absent");
+                        int absentTime = Integer.parseInt(absent.get("time").toString());
+                        int absentFine = Integer.parseInt(absent.get("fine").toString());
 
-                    if(latenessTime > 0 && absentTime > 0){
-                        // 규칙이 있을 때
-                        if(now.isBefore(scheduleDateTimeStart.plusMinutes(latenessTime)) || now.isEqual(scheduleDateTimeStart.plusMinutes(latenessTime))){
-                            // 지각 시간 전 출석
-                            log.debug("지각 시간 전 출석");
-                            response.setFine(0);
-                            response.setAttendStatus(AttendStatus.ATTENDANCE);
+                        if(latenessTime > 0 && absentTime > 0){
+                            // 규칙이 있을 때
+                            if(now.isBefore(scheduleDateTimeStart.plusMinutes(latenessTime)) || now.isEqual(scheduleDateTimeStart.plusMinutes(latenessTime))){
+                                // 지각 시간 전 출석
+                                log.debug("지각 시간 전 출석");
+                                response.setFine(0);
+                                response.setAttendStatus(AttendStatus.ATTENDANCE);
+                            }
+                            else if(now.isAfter(scheduleDateTimeStart.plusMinutes(latenessTime)) && now.isBefore(scheduleDateTimeStart.plusMinutes(absentTime + 1))){
+                                // 지각 시간 후 출석
+                                log.debug("지각 시간 후 출석");
+                                Duration duration = Duration.between(scheduleDateTimeStart.plusMinutes(latenessTime), now);
+                                // 경과 된 초
+                                int cnt = (int) duration.getSeconds() / (latenessCnt * 60);
+                                response.setFine(latenessFine * cnt);
+                                response.setAttendStatus(AttendStatus.LATENESS);
+                            }
+                            else if(now.isAfter(scheduleDateTimeStart.plusMinutes(absentTime))){
+                                // 결석 시간 후 출석
+                                log.debug("결석 시간 후 출석");
+                                response.setFine(absentFine);
+                                response.setAttendStatus(AttendStatus.ABSENT);
+                            }
                         }
-                        else if(now.isAfter(scheduleDateTimeStart.plusMinutes(latenessTime)) && now.isBefore(scheduleDateTimeStart.plusMinutes(absentTime + 1))){
-                            // 지각 시간 후 출석
-                            log.debug("지각 시간 후 출석");
-                            Duration duration = Duration.between(scheduleDateTimeStart.plusMinutes(latenessTime), now);
-                            // 경과 된 초
-                            int cnt = (int) duration.getSeconds() / (latenessCnt * 60);
-                            response.setFine(latenessFine * cnt);
-                            response.setAttendStatus(AttendStatus.LATENESS);
-                        }
-                        else if(now.isAfter(scheduleDateTimeStart.plusMinutes(absentTime))){
-                            // 결석 시간 후 출석
-                            log.debug("결석 시간 후 출석");
-                            response.setFine(absentFine);
-                            response.setAttendStatus(AttendStatus.ABSENT);
+                        else{
+                            // 규칙이 없을 때
+                            if(now.isBefore(scheduleDateTimeEnd)){
+                                // 종료 시간 전 출석
+                                log.debug("종료 시간 전 출석");
+                                response.setFine(0);
+                                response.setAttendStatus(AttendStatus.ATTENDANCE);
+                            }
+                            else if(now.isAfter(scheduleDateTimeEnd)){
+                                // 종료 시간 후 출석
+                                log.debug("종료 시간 후 출석");
+                                response.setFine(absentFine);
+                                response.setAttendStatus(AttendStatus.ABSENT);
+                            }
                         }
                     }
                     else{
-                        // 규칙이 없을 때
-                        if(now.isBefore(scheduleDateTimeEnd)){
-                            // 종료 시간 전 출석
-                            log.debug("종료 시간 전 출석");
-                            response.setFine(0);
-                            response.setAttendStatus(AttendStatus.ATTENDANCE);
-                        }
-                        else if(now.isAfter(scheduleDateTimeEnd)){
-                            // 종료 시간 후 출석
-                            log.debug("종료 시간 후 출석");
-                            response.setFine(absentFine);
-                            response.setAttendStatus(AttendStatus.ABSENT);
-                        }
+                        throw new CustomException(ErrorCode.CHECK_NUMBER_MISMATCH);
                     }
-                }
-                else{
-                    throw new CustomException(ErrorCode.CHECK_NUMBER_MISMATCH);
                 }
             }
             Attendance attendance = Attendance.builder()
@@ -161,6 +167,8 @@ public class AttendanceService {
             List<Integer> totalAbsent = new ArrayList<>();
             List<Integer> totalHold = new ArrayList<>();
 
+            study.get().getStudyScheduleList().sort(Comparator.comparing(StudySchedule::getStudyScheduleDate));
+            study.get().getStudyScheduleList().sort(Comparator.comparing(StudySchedule::getStudyScheduleStart));
             study.get().getStudyScheduleList().forEach(x->{
                 Map<String,Object> detail = new HashMap<>();
                 // 스터디 날짜 및 시작 시간 조합
@@ -177,9 +185,6 @@ public class AttendanceService {
                 LocalDateTime current = LocalDateTime.now();
                 LocalDateTime now = LocalDateTime.parse(current.format(formatter), formatter);
                 if(searchDateStart.equals("")){
-//                    if(now.isAfter(scheduleDateTimeEnd)){
-//                        detail.put("studyScheduleDateTime", scheduleDateTimeStart);
-//                    }
                     x.getAttendanceList().forEach(y->{
                         if(y.getUserId().equals(userId)){
                             if(now.isAfter(scheduleDateTimeEnd)){
@@ -211,7 +216,6 @@ public class AttendanceService {
                     log.debug("조회 종료 날짜 : {}", searchDateEndToLd);
                     log.debug("스터디 날짜 : {}", x.getStudyScheduleDate());
                     if(searchDateStartToLD.isBefore(x.getStudyScheduleDate()) && (searchDateEndToLd.isAfter(x.getStudyScheduleDate()) || searchDateEndToLd.isEqual(x.getStudyScheduleDate()))){
-                        //detail.put("studyScheduleDateTime", scheduleDateTimeStart);
                         x.getAttendanceList().forEach(y->{
                             if(y.getUserId().equals(userId)){
                                 detail.put("studyScheduleDateTime", scheduleDateTimeStart);
@@ -403,6 +407,7 @@ public class AttendanceService {
         studyMemberList.forEach(member->{
             Map<String, Object> getStatistics = this.statistics(member.getUser().getUserId(), studyId);
             getStatistics.put("userId", member.getUser().getUserId());
+            getStatistics.put("nickname", member.getUser().getNickname());
             getStatistics.put("img", ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/v1/downloadIMG").queryParam("fileName", member.getUser().getImg()).toUriString());
 
             result.add(getStatistics);

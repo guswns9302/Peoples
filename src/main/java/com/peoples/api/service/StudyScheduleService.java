@@ -18,9 +18,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -47,6 +49,23 @@ public class StudyScheduleService {
     public boolean createSchedule(Map<String, Object> param) {
         Optional<Study> study = studyRepository.findById(Long.parseLong(param.get("studyId").toString()));
         if(study.isPresent()){
+            study.get().getStudyScheduleList().forEach(x->{
+                if(x.getStudyScheduleDate().equals(LocalDate.parse(param.get("studyScheduleDate").toString()))){
+                    if(x.getStudyScheduleStart().equals(param.get("studyScheduleStart").toString()) || x.getStudyScheduleEnd().equals(param.get("studyScheduleEnd").toString())){
+                        System.out.println("신규 시작 시간 or 신규 종료 시간이 기존과 같음");
+                        throw new CustomException(ErrorCode.DUPLICATE_RESOURCE);
+                    }
+
+                    if(LocalTime.parse(param.get("studyScheduleStart").toString()).isBefore(LocalTime.parse(x.getStudyScheduleStart()))){
+                        System.out.println("신규 시작 시간이 기존 시작 시간보다 이전임");
+                        if(LocalTime.parse(param.get("studyScheduleEnd").toString()).isAfter(LocalTime.parse(x.getStudyScheduleStart()))){
+                            System.out.println("종료시간이 기존 시작 시간보다 이후 임");
+                            throw new CustomException(ErrorCode.DUPLICATE_RESOURCE);
+                        }
+                    }
+                }
+            });
+
             StudySchedule studySchedule = StudySchedule.builder()
                     .study(study.get())
                     .studyScheduleName(param.get("studyScheduleName").toString())
