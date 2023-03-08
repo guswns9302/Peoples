@@ -46,17 +46,15 @@ public class StudyMemberService {
         Map<String,Object> result = new HashMap<>();
 
         isStudy.get().getStudyMemberList().forEach(x->{
-            if(x.getUserRole().equals("스터디장")){
-                if(x.getUser().getUserId().equals(userId)){
+            if(x.getUser().getUserId().equals(userId)){
+                if(x.getUserRole().equals("스터디장")){
                     result.put("master", true);
                 }
                 else{
                     result.put("master", false);
                 }
-            }
 
-            if(x.isUserManager()){
-                if(x.getUser().getUserId().equals(userId)){
+                if(x.isUserManager()){
                     result.put("manager", true);
                 }
                 else{
