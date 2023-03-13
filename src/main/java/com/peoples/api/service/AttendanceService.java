@@ -167,8 +167,6 @@ public class AttendanceService {
             List<Integer> totalAbsent = new ArrayList<>();
             List<Integer> totalHold = new ArrayList<>();
 
-            study.get().getStudyScheduleList().sort(Comparator.comparing(StudySchedule::getStudyScheduleDate));
-            study.get().getStudyScheduleList().sort(Comparator.comparing(StudySchedule::getStudyScheduleStart));
             study.get().getStudyScheduleList().forEach(x->{
                 Map<String,Object> detail = new HashMap<>();
                 // 스터디 날짜 및 시작 시간 조합
@@ -215,7 +213,7 @@ public class AttendanceService {
                     log.debug("조회 시작 날짜 : {}", searchDateStartToLD);
                     log.debug("조회 종료 날짜 : {}", searchDateEndToLd);
                     log.debug("스터디 날짜 : {}", x.getStudyScheduleDate());
-                    if(searchDateStartToLD.isBefore(x.getStudyScheduleDate()) && (searchDateEndToLd.isAfter(x.getStudyScheduleDate()) || searchDateEndToLd.isEqual(x.getStudyScheduleDate()))){
+                    if( (searchDateStartToLD.isBefore(x.getStudyScheduleDate()) || searchDateStartToLD.isEqual(x.getStudyScheduleDate()))  && (searchDateEndToLd.isAfter(x.getStudyScheduleDate()) || searchDateEndToLd.isEqual(x.getStudyScheduleDate()))){
                         x.getAttendanceList().forEach(y->{
                             if(y.getUserId().equals(userId)){
                                 detail.put("studyScheduleDateTime", scheduleDateTimeStart);
@@ -249,13 +247,14 @@ public class AttendanceService {
             int absentCnt = totalAbsent.stream().mapToInt(Integer::intValue).sum();
             int holdCnt = totalHold.stream().mapToInt(Integer::intValue).sum();
 
+            detailList.sort(Comparator.comparing((Map<String, Object> map) -> (LocalDateTime)map.get("studyScheduleDateTime")));
+
             result.put("totalFine",fine);
             result.put("attendanceCnt",attendanceCnt);
             result.put("latenessCnt",latenessCnt);
             result.put("absentCnt",absentCnt);
             result.put("holdCnt",holdCnt);
             result.put("attendanceDetail", detailList);
-
             return result;
         }
         else{
