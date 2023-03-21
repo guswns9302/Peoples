@@ -266,12 +266,13 @@ public class AttendanceService {
     public Map<String,Object> attendListForMaster(Long studyId, String searchDate) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         Optional<Study> study = studyRepository.findById(studyId);
-        Map<String, Object> result = new HashMap<>();
+        Map<String, Object> result = new LinkedHashMap<>();
 
         if(study.isPresent()){
             LocalDate searchDateToLD = LocalDate.parse(searchDate);
             List<StudySchedule> studyScheduleList = study.get().getStudyScheduleList();
             studyScheduleList.sort(Comparator.comparing((StudySchedule list) -> LocalDateTime.parse(list.getStudyScheduleDate() + " " + list.getStudyScheduleStart(), formatter)));
+
             studyScheduleList.forEach(x->{
                 if(searchDateToLD.isEqual(x.getStudyScheduleDate())){
                     List<Map<String,Object>> userAttendList = new ArrayList<>();
