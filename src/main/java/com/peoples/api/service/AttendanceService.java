@@ -269,7 +269,9 @@ public class AttendanceService {
 
         if(study.isPresent()){
             LocalDate searchDateToLD = LocalDate.parse(searchDate);
-            study.get().getStudyScheduleList().forEach(x->{
+            List<StudySchedule> studyScheduleList = study.get().getStudyScheduleList();
+            studyScheduleList.sort(Comparator.comparing((StudySchedule list) -> LocalDateTime.parse(list.getStudyScheduleDate() + " " + list.getStudyScheduleStart())));
+            studyScheduleList.forEach(x->{
                 if(searchDateToLD.isEqual(x.getStudyScheduleDate())){
                     List<Map<String,Object>> userAttendList = new ArrayList<>();
                     x.getAttendanceList().forEach(y->{
