@@ -50,6 +50,17 @@ public class StudyService {
 
     @Transactional
     public StudyResponse create(StudyRequest param, SecurityUser user) {
+        Map<String, Object> outCondition = (Map<String, Object>) param.getStudyRule().get("out");
+        if(!outCondition.keySet().contains("absent")){
+            outCondition.put("absent",0);
+            param.getStudyRule().put("out", outCondition);
+        }
+        if(!outCondition.keySet().contains("lateness")){
+            outCondition.put("lateness",0);
+            param.getStudyRule().put("out", outCondition);
+        }
+
+        log.debug("param : {}", param);
         Study study = Study.builder()
                 .studyName(param.getStudyName())
                 .studyOn(param.isStudyOn())
