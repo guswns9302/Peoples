@@ -32,7 +32,7 @@ public class StaticScheduler {
     private final AttendanceService attendanceService;
 
     @Transactional
-    @Scheduled(cron = "0 */1 * * * *")	// 1분마다
+    @Scheduled(cron = "0 0/1 * * * *")	// 1분마다
     public void scheduleTaskUsingCronExpression() {
 
         // 현재시간
