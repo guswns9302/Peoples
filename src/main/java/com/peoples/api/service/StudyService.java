@@ -126,9 +126,9 @@ public class StudyService {
 
             study.get().getStudyMemberList().forEach(x->{
                 if(x.getUserRole().equals("스터디장")){
+                    result.put("masterNickName", user.getUser().getNickname());
                     if(x.getUser().getUserId().equals(user.getUser().getUserId())){
                         result.put("master", true);
-                        result.put("masterNickName", user.getUser().getNickname());
                     }
                     else{
                         result.put("master", false);

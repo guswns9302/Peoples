@@ -40,7 +40,8 @@ public class StaticScheduler {
         LocalDateTime current = LocalDateTime.now();
         LocalDateTime targetTime = LocalDateTime.parse(current.format(formatter), formatter);
 
-        List<StudySchedule> byStudyScheduleDate = studyScheduleRepository.findByStudyScheduleDate(targetTime.toLocalDate());
+        //List<StudySchedule> byStudyScheduleDate = studyScheduleRepository.findByStudyScheduleDate(targetTime.toLocalDate());
+        List<StudySchedule> byStudyScheduleDate = studyScheduleRepository.findAll();
         byStudyScheduleDate.forEach(x->{
             // 스터디 날짜 및 종료 시간 조합
             LocalDate scheduleDate = x.getStudyScheduleDate();
@@ -52,9 +53,9 @@ public class StaticScheduler {
             HashMap absent = (HashMap) studyRule.get("absent");
             int absentFine = Integer.parseInt(absent.get("fine").toString());
 
+            log.debug("현재 시간 : {}", targetTime);
+            log.debug("스터디 종료 시간 : {}", scheduleDateTimeEnd);
             if(targetTime.isAfter(scheduleDateTimeEnd)){
-                log.debug("현재 시간 : {}", targetTime);
-                log.debug("스터디 종료 시간 : {}", scheduleDateTimeEnd);
                 if(x.getAttendanceList().size() == x.getStudy().getStudyMemberList().size()){
                     log.debug("전원 출석 하였습니다.");
                 }
@@ -87,8 +88,8 @@ public class StaticScheduler {
         });
     }
 
-    @Scheduled(cron = "0 */1 * * * *")	// 1분마다
-    public void sendPushMsg(){
-        log.debug("pushMSG를 보내야 하는데.....");
-    }
+//    @Scheduled(cron = "0 */1 * * * *")	// 1분마다
+//    public void sendPushMsg(){
+//        log.debug("pushMSG를 보내야 하는데.....");
+//    }
 }

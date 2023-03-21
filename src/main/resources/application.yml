@@ -24,10 +24,10 @@ spring:
       ddl-auto: update
     properties:
       hibernate:
-        show_sql: true
-        format_sql: true
+        show_sql: false
+        format_sql: false
     database: mysql
-    show-sql: true
+    show-sql: false
 
 server:
   port: 8082
@@ -55,8 +55,8 @@ logging:
     '[com.peoples.api]': DEBUG
     '[org.springframework]': INFO
     '[org.springframework.data.elasticsearch.client.WIRE]': TRACE
-    '[org.hibernate.SQL]' : DEBUG
-    '[org.hibernate.type.descriptor.sql.BasicBinder]' : TRACE
+    #'[org.hibernate.SQL]' : DEBUG
+    #'[org.hibernate.type.descriptor.sql.BasicBinder]' : TRACE
 ---
 spring:
   config:
