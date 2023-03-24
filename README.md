@@ -18,7 +18,7 @@
 - Intellij / dataGrip
 
 ## 배포 서버
-- AWS EC2, S3, RDS
+- AWS EC2(Ubuntu 20.04), S3, RDS
 - Elastic Ip, Route 53, Certificate manager, Application Load balancer
 
 ## 주요 기능
@@ -42,3 +42,17 @@
 > 1. OncePerRequestFilter는 요청당 단 한번의 필터 실행을 보장하는 기본 filter이다.
 > 2. 해당 필터를 상속받은 JwtAuthenticationProcessingFilter 에서 인증과 인가가 필요한 요청을 필터링하여 jwt token 검증 단계를 거친다.
 
+## 진행하며 겪은 문제점 및 해결
+### 1. response 무한재귀
+> jpa를 사용하면서 양방향 연관관계 맵핑하여 사용하면서 발생한 문제이다.
+> 1. 양방향 참조된 Entity를 Controller에서 return하게 되면, Entity가 참조하고 있는 객체는 지연 로딩되고, 로딩된 객체는 또다시 참조하고 있는 객체를 호출하게 된다.
+> 2. 서로 참조하는 객체를 계속 호출하면서 무한재귀 문제가 발생하였다.
+> 3. 이를 해결하기 위해서 몇가지 방법 ( Json으로 직렬화할 속성 무시, 직렬화 방향 설정, 식별키로 구분하여 더이상 참조되지 않게 하기, DTO 사용하기 ) 중 클라이언트에서도 편리한 작업환경을 제공하기 위해서 DTO를 이용하는 방법으로 해결하였다.
+
+## 아쉬운 점
+- 목표는 앱을 실제 배포하여 서비스를 잠깐이나마 운영해보는 것이었으나, 클라이언트 단 개발이 늦어지면서 자연스럽게 사이드 프로젝트가 종료되었다.
+> 실제 서비를 운영하면서 생기는 문제점들을 경험해볼 수 있는 좋은 기회였는데 아쉬움이 많이 남는다.
+> 하지만 실제 배포를 목표로 api server를 직접 구현해보는 과정에서 보안설정과 HTTPS 적용 등을 다뤄볼 수 있어서 좋았다.
+
+# API
+https://app.gitbook.com/o/7Qa6miUFzBp1ZKjBL4b5/s/E57Z6epCcPhNFUfUEU0p/
