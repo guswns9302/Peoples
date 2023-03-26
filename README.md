@@ -21,6 +21,10 @@
 - AWS EC2(Ubuntu 20.04), S3, RDS
 - Elastic Ip, Route 53, Certificate manager, Application Load balancer
 
+## ERD
+![image](https://user-images.githubusercontent.com/87797716/227778610-c5ec0b8c-702b-4beb-b368-9bb23064ccf4.png)
+
+
 ## 주요 기능
 ### 1. JWT Token
 - HTTP는 stateless 상태이므로, Request마다 유저를 식별하고 인증과 인가를 해야 한다.
